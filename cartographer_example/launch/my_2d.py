@@ -44,7 +44,7 @@ def generate_launch_description():
             PathJoinSubstitution([
                 FindPackageShare("cartographer_ros"),
                 "configuration_files",
-                "my_demo_3d.rviz"
+                "my_3d.rviz"
             ])
         ],
         output="screen",

@@ -32,7 +32,8 @@ ENV QT_X11_NO_MITSHM=1
 RUN export DEBIAN_FRONTEND=noninteractive \ 
     && apt-get install -y \
     ros-humble-cartographer \
-    ros-humble-cartographer-ros
+    ros-humble-cartographer-ros \
+    ros-humble-cartographer-rviz
 
 RUN apt-get install -y python3-pip 
 RUN pip3 install rosbags
