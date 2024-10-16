@@ -1,4 +1,4 @@
-11. Build docker `docker build -t ros_cart .`
+1. Build docker `docker build -t ros_cart .`
 2. Run docker
     ```
     docker run -it   --env="DISPLAY"   --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw"   --device=/dev/dri:/dev/dri    ros_cart
