@@ -38,6 +38,8 @@ RUN export DEBIAN_FRONTEND=noninteractive \
 RUN apt-get install -y python3-pip 
 RUN pip3 install rosbags
 
+RUN apt install -y ros-humble-nav2-bringup ros-humble-nav2-rviz-plugins
+
 COPY ./launch/* /opt/ros/humble/share/cartographer_ros/launch/
 COPY ./configuration_files/* /opt/ros/humble/share/cartographer_ros/configuration_files/
 

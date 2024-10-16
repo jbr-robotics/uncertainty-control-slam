@@ -41,6 +41,8 @@ options = {
   fixed_frame_pose_sampling_ratio = 1.,
   imu_sampling_ratio = 1.,
   landmarks_sampling_ratio = 1.,
+
+  publish_tracked_pose = true,
 }
 
 TRAJECTORY_BUILDER_3D.num_accumulated_range_data = 160

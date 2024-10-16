@@ -22,7 +22,7 @@ options = {
   tracking_frame = "os_imu",
   published_frame = "base_link",
   odom_frame = "odom",
-  provide_odom_frame = false,
+  provide_odom_frame = true,
   publish_frame_projected_to_2d = false,
   use_pose_extrapolator = false,
   use_odometry = false,
@@ -41,6 +41,8 @@ options = {
   fixed_frame_pose_sampling_ratio = 1.,
   imu_sampling_ratio = 1.,
   landmarks_sampling_ratio = 1.,
+
+  publish_tracked_pose = true,
 }
 
 MAP_BUILDER.use_trajectory_builder_2d = true

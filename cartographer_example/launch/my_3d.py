@@ -22,7 +22,7 @@ def generate_launch_description():
                     FindPackageShare("cartographer_ros"),
                     "configuration_files",
                 ]),
-            "-configuration_basename", "my_2d.lua",
+            "-configuration_basename", "my_3d.lua",
             "--collect_metrics",
         ],
         remappings=[
