@@ -25,10 +25,6 @@ RUN export DEBIAN_FRONTEND=noninteractive \
         mesa-utils \
         libgl1-mesa-glx 
 
-RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc 
-# Set environment variable to ensure Qt applications like Gazebo can run
-ENV QT_X11_NO_MITSHM=1
-
 RUN export DEBIAN_FRONTEND=noninteractive \ 
     && apt-get install -y \
     ros-humble-cartographer \
@@ -38,7 +34,9 @@ RUN export DEBIAN_FRONTEND=noninteractive \
 RUN apt-get install -y python3-pip 
 RUN pip3 install rosbags
 
-RUN apt install -y ros-humble-nav2-bringup ros-humble-nav2-rviz-plugins
+RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc 
+# Set environment variable to ensure Qt applications like Gazebo can run
+ENV QT_X11_NO_MITSHM=1
 
 COPY ./launch/* /opt/ros/humble/share/cartographer_ros/launch/
 COPY ./configuration_files/* /opt/ros/humble/share/cartographer_ros/configuration_files/
