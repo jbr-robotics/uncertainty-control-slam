@@ -35,7 +35,7 @@ options = {
   lookup_transform_timeout_sec = 0.2,
   submap_publish_period_sec = 0.3,
   pose_publish_period_sec = 5e-3,
-  trajectory_publish_period_sec = 30e-3,
+  trajectory_publish_period_sec = 1e-3,
   rangefinder_sampling_ratio = 1.,
   odometry_sampling_ratio = 1.,
   fixed_frame_pose_sampling_ratio = 1.,
@@ -45,7 +45,32 @@ options = {
   publish_tracked_pose = true,
 }
 
+-- GENERAL
 MAP_BUILDER.use_trajectory_builder_2d = true
-TRAJECTORY_BUILDER_2D.num_accumulated_range_data = 10
 
+-- LOCAL SLAM
+TRAJECTORY_BUILDER_2D.min_range = 1 
+TRAJECTORY_BUILDER_2D.max_range = 80 
+TRAJECTORY_BUILDER_2D.min_z = -0.5
+TRAJECTORY_BUILDER_2D.max_z = 0.5
+TRAJECTORY_BUILDER_2D.voxel_filter_size = 0.15
+TRAJECTORY_BUILDER_2D.use_imu_data = true
+TRAJECTORY_BUILDER_2D.imu_gravity_time_constant = 1e-2
+
+
+TRAJECTORY_BUILDER_2D.ceres_scan_matcher.translation_weight = 1e-2
+TRAJECTORY_BUILDER_2D.ceres_scan_matcher.rotation_weight = 1e-2
+TRAJECTORY_BUILDER_2D.ceres_scan_matcher.occupied_space_weight = 1e1
+TRAJECTORY_BUILDER_2D.num_accumulated_range_data = 1
+TRAJECTORY_BUILDER_2D.submaps.num_range_data = 30
+TRAJECTORY_BUILDER_2D.use_online_correlative_scan_matching = false
+TRAJECTORY_BUILDER_2D.submaps.grid_options_2d.resolution = 0.1
+
+-- GLOBAL SLAM
+POSE_GRAPH.optimization_problem.huber_scale = 5e2
+POSE_GRAPH.optimize_every_n_nodes = 60 
+POSE_GRAPH.constraint_builder.sampling_ratio = 0.03
+POSE_GRAPH.optimization_problem.ceres_solver_options.max_num_iterations = 10
+POSE_GRAPH.constraint_builder.min_score = 0.62
+POSE_GRAPH.constraint_builder.global_localization_min_score = 0.66
 return options
