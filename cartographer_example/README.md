@@ -28,4 +28,22 @@
     ```
     ros2 launch cartographer_ros my_3d.py bag_filename:=/path/to/uzh_tracking_area_run2.bag
     ```
-2. To save the map [TODO]
+
+3. In another termminal save the trajectory
+    ```
+    ros2 service call /finish_trajectory cartographer_ros_msgs/srv/FinishTrajectory "{trajectory_id: 0}"
+
+    ros2 service call /write_state cartographer_ros_msgs/srv/WriteState "{filename: '/path/to/uzh_tracking_area_run2.pbstream', include_unfinished_submaps: true}"
+
+    ```
+
+4. Save `uzh_tracking_area_run2_trajectory.ply` file:
+    ```
+    launch cartographer_ros assets_writer_3d.py \
+        bag_filenames:=/path/to/uzh_tracking_area_run2 \ 
+        pose_graph_filename:=/path/to/uzh_tracking_area_run2.pbstream
+    ```
+
+5. Visualize it on host using [meshlab](https://www.meshlab.net/#download)
+
+
