@@ -34,6 +34,8 @@ RUN export DEBIAN_FRONTEND=noninteractive \
 RUN apt-get install -y python3-pip 
 RUN pip3 install rosbags
 
+RUN apt-get install -y ros-humble-nav2-map-server
+
 RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc 
 # Set environment variable to ensure Qt applications like Gazebo can run
 ENV QT_X11_NO_MITSHM=1

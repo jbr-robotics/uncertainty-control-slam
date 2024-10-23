@@ -45,15 +45,29 @@ options = {
   publish_tracked_pose = true,
 }
 
-TRAJECTORY_BUILDER_3D.num_accumulated_range_data = 160
-
+-- GENERAL
 MAP_BUILDER.use_trajectory_builder_3d = true
-MAP_BUILDER.num_background_threads = 7
+
+-- LOCAL SLAM
+TRAJECTORY_BUILDER_3D.min_range = 1 
+TRAJECTORY_BUILDER_3D.max_range = 80 
+TRAJECTORY_BUILDER_3D.voxel_filter_size = 0.15
+TRAJECTORY_BUILDER_3D.imu_gravity_time_constant = 1e-2
+
+
+TRAJECTORY_BUILDER_3D.ceres_scan_matcher.translation_weight = 1e-2
+TRAJECTORY_BUILDER_3D.ceres_scan_matcher.rotation_weight = 1e-2
+TRAJECTORY_BUILDER_3D.ceres_scan_matcher.occupied_space_weight_0 = 1e1
+TRAJECTORY_BUILDER_3D.ceres_scan_matcher.occupied_space_weight_1 = 1e1
+TRAJECTORY_BUILDER_3D.num_accumulated_range_data = 1
+TRAJECTORY_BUILDER_3D.submaps.num_range_data = 30
+TRAJECTORY_BUILDER_3D.use_online_correlative_scan_matching = false
+
+-- GLOBAL SLAM
 POSE_GRAPH.optimization_problem.huber_scale = 5e2
-POSE_GRAPH.optimize_every_n_nodes = 320
+POSE_GRAPH.optimize_every_n_nodes = 60 
 POSE_GRAPH.constraint_builder.sampling_ratio = 0.03
 POSE_GRAPH.optimization_problem.ceres_solver_options.max_num_iterations = 10
 POSE_GRAPH.constraint_builder.min_score = 0.62
 POSE_GRAPH.constraint_builder.global_localization_min_score = 0.66
-
 return options
