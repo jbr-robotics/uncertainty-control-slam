@@ -1,3 +1,4 @@
+This page is based on the [doc](https://google-cartographer-ros.readthedocs.io/en/latest/assets_writer.html)
 
 ## Overview
 `.pbstream` is a serialization of the Cartographer internal state: compressed [protobuf](https://en.wikipedia.org/wiki/Protocol_Buffers)
