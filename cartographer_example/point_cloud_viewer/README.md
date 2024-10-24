@@ -7,7 +7,11 @@
 # Create octree
 
 ```
-./build_octree.sh /path/to/input/map.ply /path/to/output/directory [--resolution <resolution>] [--num-threads <num-threads>]"
+./build_octree.sh /path/to/input/map.ply /path/to/octree/directory [--resolution <resolution>] [--num-threads <num-threads>]"
 ```
 
-#  
+#  SDL viewer
+
+```
+./sdl_viewer.sh /path/to/octree/directory
+```
