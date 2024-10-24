@@ -15,7 +15,7 @@
 
 1. Start cartographer 
     ```
-    ros2 launch cartographer_ros my_2d.py bag_filename:=/path/to/uzh_tracking_area_run2.bag
+    ros2 launch cartographer_ros my_2d.py bag_filename:=/path/to/uzh_tracking_area_run2
     ```
 2. To save the map, open another terminal inside docker and execute
     ```
@@ -26,7 +26,7 @@
 
 1. Start cartographer 
     ```
-    ros2 launch cartographer_ros my_3d.py bag_filename:=/path/to/uzh_tracking_area_run2.bag
+    ros2 launch cartographer_ros my_3d.py bag_filename:=/path/to/uzh_tracking_area_run2
     ```
 
 3. In another termminal save the trajectory
@@ -39,8 +39,8 @@
 
 4. Save `uzh_tracking_area_run2_trajectory.ply` file:
     ```
-    launch cartographer_ros assets_writer_3d.py \
-        bag_filenames:=/path/to/uzh_tracking_area_run2 \ 
+    ros2 launch cartographer_ros assets_writer_3d.py \
+        bag_filenames:=/path/to/uzh_tracking_area_run2 \
         pose_graph_filename:=/path/to/uzh_tracking_area_run2.pbstream
     ```
 

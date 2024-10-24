@@ -29,12 +29,11 @@ RUN export DEBIAN_FRONTEND=noninteractive \
     && apt-get install -y \
     ros-humble-cartographer \
     ros-humble-cartographer-ros \
-    ros-humble-cartographer-rviz
+    ros-humble-cartographer-rviz \
+    ros-humble-nav2-map-server
 
 RUN apt-get install -y python3-pip 
 RUN pip3 install rosbags
-
-RUN apt-get install -y ros-humble-nav2-map-server
 
 RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc 
 # Set environment variable to ensure Qt applications like Gazebo can run
