@@ -1,3 +1,7 @@
+# Point Cloud Viewer
+
+This directory contains Dockerfile to build https://github.com/cartographer-project/point_cloud_viewer and scripts to use it
+
 # Build docker
 
 ```
