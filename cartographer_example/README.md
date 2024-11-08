@@ -42,9 +42,12 @@ ros2 launch cartographer_ros offline_backpack_3d.launch.py bag_filenames:=/path/
 ```
 
 ## Custom `.bag` file
-- Download `.bag` file into container. For example: https://storage.googleapis.com/hilti_challenge/uzh_tracking_area_run2.bag
+- Download `.bag` file into container. 
 - Covert it to ROS2 format as shown [above](#rosbag-to-rosbag2)
 
+In this example, [uzh_tracking_area_run2.bag](https://storage.googleapis.com/hilti_challenge/uzh_tracking_area_run2.bag) will be used.
+
+_Note_: this repo additionally contains example for [Basement_1.bag](https://storage.googleapis.com/hilti_challenge/Basement_1.bag)
 
 ### 2D
 
