@@ -50,7 +50,7 @@ ros2 launch cartographer_ros offline_backpack_3d.launch.py bag_filenames:=/path/
 
 - Start cartographer 
     ```
-    ros2 launch cartographer_ros my_2d.py bag_filename:=/path/to/uzh_tracking_area_run2
+    ros2 launch cartographer_ros uzh_tracking_area_run2_2D.py bag_filename:=/path/to/uzh_tracking_area_run2
     ```
 - To save the map, open another terminal inside docker and execute
     ```
@@ -63,7 +63,7 @@ TODO: fix the fact that the map has very low quality
 
 - Start cartographer 
     ```
-    ros2 launch cartographer_ros my_3d.py bag_filename:=/path/to/uzh_tracking_area_run2
+    ros2 launch cartographer_ros uzh_tracking_area_run2_3D.py bag_filename:=/path/to/uzh_tracking_area_run2
     ```
 
 - In another termminal save the trajectory
