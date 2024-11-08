@@ -50,7 +50,7 @@ ros2 launch cartographer_ros offline_backpack_3d.launch.py bag_filenames:=/path/
 
 - Start cartographer 
     ```
-    ros2 launch cartographer_ros uzh_tracking_area_run2_2D.py bag_filename:=/path/to/uzh_tracking_area_run2
+    ros2 launch cartographer_ros uzh_tracking_area_run2_2D.launch.py bag_filename:=/path/to/uzh_tracking_area_run2
     ```
 - To save the map, open another terminal inside docker and execute
     ```
@@ -63,7 +63,7 @@ TODO: fix the fact that the map has very low quality
 
 - Start cartographer 
     ```
-    ros2 launch cartographer_ros uzh_tracking_area_run2_3D.py bag_filename:=/path/to/uzh_tracking_area_run2
+    ros2 launch cartographer_ros uzh_tracking_area_run2_3D.launch.py bag_filename:=/path/to/uzh_tracking_area_run2
     ```
 
 - In another termminal save the trajectory
@@ -75,14 +75,14 @@ TODO: fix the fact that the map has very low quality
 
 # Pbstream to ply
 
-To generate `.ply` file, use `assets_writer_3d.py` for hilti example
+To generate `.ply` file, use `assets_writer_3d.launch.py` for hilti example
 ```
-ros2 launch cartographer_ros assets_writer_3d.py bag_filenames:=/path/to/uzh_tracking_area_run2 pose_graph_filename:=/path/to/uzh_tracking_area_run2.pbstream
+ros2 launch cartographer_ros assets_writer_3d.launch.py bag_filenames:=/path/to/uzh_tracking_area_run2 pose_graph_filename:=/path/to/uzh_tracking_area_run2.pbstream
 ```
 
-or `assets_writer_3d_with_urdf.py` for cartographer example
+or `assets_writer_3d_with_urdf.launch.py` for cartographer example
 ```
-ros2 launch cartographer_ros assets_writer_3d.py bag_filenames:=/workspace/bags/b3-2016-02-02-13-32-01 pose_graph_filename:=/workspace/bags/b3-2016-02-02-13-32-01.pbstream
+ros2 launch cartographer_ros assets_writer_3d_with_urdf.launch.py bag_filenames:=/workspace/bags/b3-2016-02-02-13-32-01 pose_graph_filename:=/workspace/bags/b3-2016-02-02-13-32-01.pbstream
 ```
 
 For other bag files one may need to create custom launch file
