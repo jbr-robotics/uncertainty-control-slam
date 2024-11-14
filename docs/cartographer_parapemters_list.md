@@ -1,0 +1,198 @@
+# Cartographer Parameters
+
+## TrajectoryOptions
+- `::cartographer::mapping::proto::TrajectoryBuilderOptions trajectory_builder_options`
+- `std::string tracking_frame`
+- `std::string published_frame`
+- `std::string odom_frame`
+- `bool provide_odom_frame`
+- `bool use_odometry`
+- `bool use_nav_sat`
+- `bool use_landmarks`
+- `bool publish_frame_projected_to_2d`
+- `bool ignore_out_of_order_messages`
+- `int num_laser_scans`
+- `int num_multi_echo_laser_scans`
+- `int num_subdivisions_per_laser_scan`
+- `int num_point_clouds`
+- `double rangefinder_sampling_ratio`
+- `double odometry_sampling_ratio`
+- `double fixed_frame_pose_sampling_ratio`
+- `double imu_sampling_ratio`
+- `double landmarks_sampling_ratio`
+
+## NodeOptions
+- `::cartographer::mapping::proto::MapBuilderOptions map_builder_options`
+- `std::string map_frame`
+- `double lookup_transform_timeout_sec`
+- `double submap_publish_period_sec`
+- `double pose_publish_period_sec`
+- `double trajectory_publish_period_sec`
+- `bool publish_to_tf` (default: `true`)
+- `bool publish_tracked_pose` (default: `false`)
+- `bool use_pose_extrapolator` (default: `true`)
+
+## MAP_BUILDER
+- `bool use_trajectory_builder_2d` (default: `false`)
+- `bool use_trajectory_builder_3d` (default: `false`)
+- `int num_background_threads` (default: `4`)
+- `POSE_GRAPH pose_graph`
+- `bool collate_by_trajectory` (default: `false`)
+
+## MAP_BUILDER_SERVER
+- `MAP_BUILDER map_builder`
+- `int num_event_threads` (default: `4`)
+- `int num_grpc_threads` (default: `4`)
+- `std::string server_address` (default: `"0.0.0.0:50051"`)
+- `std::string uplink_server_address`
+- `int upload_batch_size` (default: `100`)
+- `bool enable_ssl_encryption` (default: `false`)
+- `bool enable_google_auth` (default: `false`)
+
+## POSE_GRAPH
+- `int optimize_every_n_nodes` (default: `90`)
+- `ConstraintBuilderOptions constraint_builder`
+  - `double sampling_ratio` (default: `0.3`)
+  - `double max_constraint_distance` (default: `15.0`)
+  - `double min_score` (default: `0.55`)
+  - `double global_localization_min_score` (default: `0.6`)
+  - `double loop_closure_translation_weight` (default: `1.1e4`)
+  - `double loop_closure_rotation_weight` (default: `1e5`)
+  - `bool log_matches` (default: `true`)
+  - `FastCorrelativeScanMatcherOptions fast_correlative_scan_matcher`
+    - `double linear_search_window` (default: `7.0`)
+    - `double angular_search_window` (default: `math.rad(30.0)`)
+    - `int branch_and_bound_depth` (default: `7`)
+  - `CeresScanMatcherOptions ceres_scan_matcher`
+    - `double occupied_space_weight` (default: `20.0`)
+    - `double translation_weight` (default: `10.0`)
+    - `double rotation_weight` (default: `1.0`)
+    - `CeresSolverOptions ceres_solver_options`
+      - `bool use_nonmonotonic_steps` (default: `true`)
+      - `int max_num_iterations` (default: `10`)
+      - `int num_threads` (default: `1`)
+  - `FastCorrelativeScanMatcherOptions3D fast_correlative_scan_matcher_3d`
+    - `int branch_and_bound_depth` (default: `8`)
+    - `int full_resolution_depth` (default: `3`)
+    - `double min_rotational_score` (default: `0.77`)
+    - `double min_low_resolution_score` (default: `0.55`)
+    - `double linear_xy_search_window` (default: `5.0`)
+    - `double linear_z_search_window` (default: `1.0`)
+    - `double angular_search_window` (default: `math.rad(15.0)`)
+  - `CeresScanMatcherOptions3D ceres_scan_matcher_3d`
+    - `double occupied_space_weight_0` (default: `5.0`)
+    - `double occupied_space_weight_1` (default: `30.0`)
+    - `double translation_weight` (default: `10.0`)
+    - `double rotation_weight` (default: `1.0`)
+    - `bool only_optimize_yaw` (default: `false`)
+    - `CeresSolverOptions ceres_solver_options`
+      - `bool use_nonmonotonic_steps` (default: `false`)
+      - `int max_num_iterations` (default: `10`)
+      - `int num_threads` (default: `1`)
+- `double matcher_translation_weight` (default: `5e2`)
+- `double matcher_rotation_weight` (default: `1.6e3`)
+- `OptimizationProblemOptions optimization_problem`
+  - `double huber_scale` (default: `1e1`)
+  - `double acceleration_weight` (default: `1.1e2`)
+  - `double rotation_weight` (default: `1.6e4`)
+  - `double local_slam_pose_translation_weight` (default: `1e5`)
+  - `double local_slam_pose_rotation_weight` (default: `1e5`)
+  - `double odometry_translation_weight` (default: `1e5`)
+  - `double odometry_rotation_weight` (default: `1e5`)
+  - `double fixed_frame_pose_translation_weight` (default: `1e1`)
+  - `double fixed_frame_pose_rotation_weight` (default: `1e2`)
+  - `bool fixed_frame_pose_use_tolerant_loss` (default: `false`)
+  - `double fixed_frame_pose_tolerant_loss_param_a` (default: `1`)
+  - `double fixed_frame_pose_tolerant_loss_param_b` (default: `1`)
+  - `bool log_solver_summary` (default: `false`)
+  - `bool use_online_imu_extrinsics_in_3d` (default: `true`)
+  - `bool fix_z_in_3d` (default: `false`)
+  - `CeresSolverOptions ceres_solver_options`
+    - `bool use_nonmonotonic_steps` (default: `false`)
+    - `int max_num_iterations` (default: `50`)
+    - `int num_threads` (default: `7`)
+- `int max_num_final_iterations` (default: `200`)
+- `double global_sampling_ratio` (default: `0.003`)
+- `bool log_residual_histograms` (default: `true`)
+- `double global_constraint_search_after_n_seconds` (default: `10.0`)
+
+## TRAJECTORY_BUILDER
+- `TrajectoryBuilder2DOptions trajectory_builder_2d`
+- `TrajectoryBuilder3DOptions trajectory_builder_3d`
+- `bool collate_fixed_frame` (default: `true`)
+- `bool collate_landmarks` (default: `false`)
+
+## TRAJECTORY_BUILDER_3D
+- `double min_range` (default: `1.0`)
+- `double max_range` (default: `MAX_3D_RANGE`)
+- `int num_accumulated_range_data` (default: `1`)
+- `double voxel_filter_size` (default: `0.15`)
+- `AdaptiveVoxelFilterOptions high_resolution_adaptive_voxel_filter`
+  - `double max_length` (default: `2.0`)
+  - `int min_num_points` (default: `150`)
+  - `double max_range` (default: `15.0`)
+- `AdaptiveVoxelFilterOptions low_resolution_adaptive_voxel_filter`
+  - `double max_length` (default: `4.0`)
+  - `int min_num_points` (default: `200`)
+  - `double max_range` (default: `MAX_3D_RANGE`)
+- `bool use_online_correlative_scan_matching` (default: `false`)
+- `RealTimeCorrelativeScanMatcherOptions real_time_correlative_scan_matcher`
+  - `double linear_search_window` (default: `0.15`)
+  - `double angular_search_window` (default: `math.rad(1.0)`)
+  - `double translation_delta_cost_weight` (default: `1e-1`)
+  - `double rotation_delta_cost_weight` (default: `1e-1`)
+- `CeresScanMatcherOptions ceres_scan_matcher`
+  - `double occupied_space_weight_0` (default: `1.0`)
+  - `double occupied_space_weight_1` (default: `6.0`)
+  - `IntensityCostFunctionOptions intensity_cost_function_options_0`
+    - `double weight` (default: `0.5`)
+    - `double huber_scale` (default: `0.3`)
+    - `double intensity_threshold` (default: `INTENSITY_THRESHOLD`)
+  - `double translation_weight` (default: `5.0`)
+  - `double rotation_weight` (default: `4e2`)
+  - `bool only_optimize_yaw` (default: `false`)
+  - `CeresSolverOptions ceres_solver_options`
+    - `bool use_nonmonotonic_steps` (default: `false`)
+    - `int max_num_iterations` (default: `12`)
+    - `int num_threads` (default: `1`)
+- `MotionFilterOptions motion_filter`
+  - `double max_time_seconds` (default: `0.5`)
+  - `double max_distance_meters` (default: `0.1`)
+  - `double max_angle_radians` (default: `0.004`)
+- `int rotational_histogram_size` (default: `120`)
+- `double imu_gravity_time_constant` (default: `10.0`)
+- `PoseExtrapolatorOptions pose_extrapolator`
+  - `bool use_imu_based` (default: `false`)
+  - `ConstantVelocityOptions constant_velocity`
+    - `double imu_gravity_time_constant` (default: `10.0`)
+    - `double pose_queue_duration` (default: `0.001`)
+  - `ImuBasedOptions imu_based`
+    - `double pose_queue_duration` (default: `5.0`)
+    - `double gravity_constant` (default: `9.806`)
+    - `double pose_translation_weight` (default: `1.0`)
+    - `double pose_rotation_weight` (default: `1.0`)
+    - `double imu_acceleration_weight` (default: `1.0`)
+    - `double imu_rotation_weight` (default: `1.0`)
+    - `double odometry_translation_weight` (default: `1.0`)
+    - `double odometry_rotation_weight` (default: `1.0`)
+    - `SolverOptions solver_options`
+      - `bool use_nonmonotonic_steps` (default: `false`)
+      - `int max_num_iterations` (default: `10`)
+      - `int num_threads` (default: `1`)
+- `SubmapsOptions submaps`
+  - `double high_resolution` (default: `0.10`)
+  - `double high_resolution_max_range` (default: `20.0`)
+  - `double low_resolution` (default: `0.45`)
+  - `int num_range_data` (default: `160`)
+  - `RangeDataInserterOptions range_data_inserter`
+    - `double hit_probability` (default: `0.55`)
+    - `double miss_probability` (default: `0.49`)
+    - `int num_free_space_voxels` (default: `2`)
+    - `double intensity_threshold` (default: `INTENSITY_THRESHOLD`)
+- `bool use_intensities` (default: `false`)
+
+# References:
+- [Cartographer trajectory options](https://github.com/cartographer-project/cartographer_ros/blob/c138034db0c47fe0ea5a2abe516acae02190dbf5/cartographer_ros/cartographer_ros/trajectory_options.h)
+- [Cartographer node options](https://github.com/cartographer-project/cartographer_ros/blob/c138034db0c47fe0ea5a2abe516acae02190dbf5/cartographer_ros/cartographer_ros/node_options.h#L31)
+- [Default configuration files](https://github.com/ros2/cartographer/tree/ros2/configuration_files)
+
