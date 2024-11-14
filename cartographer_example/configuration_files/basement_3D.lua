@@ -45,29 +45,62 @@ options = {
   publish_tracked_pose = true,
 }
 
--- GENERAL
-MAP_BUILDER.use_trajectory_builder_3d = true
 
--- LOCAL SLAM
-TRAJECTORY_BUILDER_3D.min_range = 1 
-TRAJECTORY_BUILDER_3D.max_range = 80 
-TRAJECTORY_BUILDER_3D.voxel_filter_size = 0.15
-TRAJECTORY_BUILDER_3D.imu_gravity_time_constant = 1e-2
-
-
-TRAJECTORY_BUILDER_3D.ceres_scan_matcher.translation_weight = 1e-2
-TRAJECTORY_BUILDER_3D.ceres_scan_matcher.rotation_weight = 1e-2
-TRAJECTORY_BUILDER_3D.ceres_scan_matcher.occupied_space_weight_0 = 1e1
-TRAJECTORY_BUILDER_3D.ceres_scan_matcher.occupied_space_weight_1 = 1e1
+-- Copied from https://github.com/Krishtof-Korda/ouster_example_cartographer/blob/master/cartographer_ros/configuration_files/cart_3d.lua
+-- Original defaults
 TRAJECTORY_BUILDER_3D.num_accumulated_range_data = 1
-TRAJECTORY_BUILDER_3D.submaps.num_range_data = 30
-TRAJECTORY_BUILDER_3D.use_online_correlative_scan_matching = false
 
--- GLOBAL SLAM
+MAP_BUILDER.use_trajectory_builder_3d = true
+MAP_BUILDER.num_background_threads = 4
+
 POSE_GRAPH.optimization_problem.huber_scale = 5e2
-POSE_GRAPH.optimize_every_n_nodes = 60 
+POSE_GRAPH.optimize_every_n_nodes = 320
 POSE_GRAPH.constraint_builder.sampling_ratio = 0.03
-POSE_GRAPH.optimization_problem.ceres_solver_options.max_num_iterations = 10
+POSE_GRAPH.optimization_problem.ceres_solver_options.max_num_iterations = 500
 POSE_GRAPH.constraint_builder.min_score = 0.62
 POSE_GRAPH.constraint_builder.global_localization_min_score = 0.66
+
+-- Modifications
+TRAJECTORY_BUILDER_3D.ceres_scan_matcher.translation_weight = 5. 
+
+TRAJECTORY_BUILDER_3D.use_online_correlative_scan_matching = true
+TRAJECTORY_BUILDER_3D.imu_gravity_time_constant = .1
+
+-- No point of trying to SLAM over the points on your cart.
+TRAJECTORY_BUILDER_3D.min_range = 1.0
+TRAJECTORY_BUILDER_3D.max_range = 50
+
+-- These were just my first guess: use more points for SLAMing and adapt a bit for the ranges that are bigger for cars.
+TRAJECTORY_BUILDER_3D.high_resolution_adaptive_voxel_filter.max_length = 5.
+TRAJECTORY_BUILDER_3D.high_resolution_adaptive_voxel_filter.min_num_points = 250.
+TRAJECTORY_BUILDER_3D.low_resolution_adaptive_voxel_filter.max_length = 8.
+TRAJECTORY_BUILDER_3D.low_resolution_adaptive_voxel_filter.min_num_points = 400.
+
+-- The submaps felt pretty big - since the car moves faster, we want them to be
+-- slightly smaller. You are also slamming at 10cm - which might be aggressive
+-- for cars and for the quality of the laser. I increased 'high_resolution',
+-- you might need to increase 'low_resolution'. Increasing the
+-- '*num_iterations' in the various optimization problems also trades
+-- performance/quality.
+TRAJECTORY_BUILDER_3D.submaps.high_resolution = .25
+TRAJECTORY_BUILDER_3D.submaps.low_resolution = .60
+TRAJECTORY_BUILDER_3D.submaps.num_range_data = 270
+TRAJECTORY_BUILDER_3D.ceres_scan_matcher.ceres_solver_options.max_num_iterations = 50
+
+
+-- Trying loop closing too often will cost CPU and not buy you a lot. There is
+-- little point in trying more than once per submap.
+MAP_BUILDER.pose_graph.optimize_every_n_nodes = 100
+MAP_BUILDER.pose_graph.constraint_builder.sampling_ratio = 0.03
+MAP_BUILDER.pose_graph.optimization_problem.ceres_solver_options.max_num_iterations = 200
+
+MAP_BUILDER.pose_graph.constraint_builder.min_score = 0.5
+
+-- Crazy search window to force loop closure to work. All other changes are probably not needed.
+--MAP_BUILDER.sparse_pose_graph.constraint_builder.max_constraint_distance = 250.
+--MAP_BUILDER.sparse_pose_graph.constraint_builder.fast_correlative_scan_matcher_3d.linear_xy_search_window = 250.
+--MAP_BUILDER.sparse_pose_graph.constraint_builder.fast_correlative_scan_matcher_3d.linear_z_search_window = 30.
+--MAP_BUILDER.sparse_pose_graph.constraint_builder.fast_correlative_scan_matcher_3d.angular_search_window = math.rad(60.)
+--MAP_BUILDER.sparse_pose_graph.constraint_builder.ceres_scan_matcher_3d.ceres_solver_options.max_num_iterations = 50
+
 return options
