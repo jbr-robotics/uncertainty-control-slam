@@ -1,8 +1,8 @@
 # A list of the most important parameters in cartographer
 
-This document is a list of the most important parameters for 3D SLAM in cartographer along with a brief explanation of what they do.
 
-The list of all parameters can be found here [cartograher_parameters_list.md](/docs/cartographer_parameters_list.md)
+> **Note:**
+> The list of all parameters can be found here [cartograher_parameters_list.md](/docs/cartographer_parameters_list.md)
 
 > **Note:** 
 > One can firstly tune the parameters for local SLAM and then for global SLAM. Thus, it is meaningful to create different lists of important parameters for local and global SLAM.
@@ -13,51 +13,25 @@ The list of all parameters can be found here [cartograher_parameters_list.md](/d
 > **Note:**
 > As mentioned in [this comment](https://github.com/cartographer-project/cartographer_ros/issues/1252#issuecomment-482004124) it is reasonable to firstly tune for 2D SLAM and then for 3D SLAM.
 
-# Important parameters for local SLAM
-
-In author's opinion, these parameters are worth tuning for local SLAM:
-
-- TODO
-
-# Important parameters for global SLAM
-
-In author's opinion, these parameters are worth tuning for global SLAM:
-
-- TODO
-
-# Justification of importance
-
-There is a justification for why listed above parameters are important, while others are not. 
-
 > **Note:** 
 > Parameters which never occured in sources are automatically considered unimportant and not described in this document.
 
+> **Note:**
+> The parameters in this documents are NOT ordered by importance.
+
+There are three groups of parameters described in this document:
+- [Important parameters](#important-parameters)
+- [Parameters with unknown importance](#parameters-with-unknown-importance)
+- [Unimportant parameters](#unimportant-parameters)
+
 ## Important parameters 
-
----
-
-`TRAJECTORY_BUILDER_nD.voxel_filter_size`
-
-- A small cube size will result in a more dense data representation, causing more computations. A large cube size will result in a data loss but will be much quicker. [source](https://google-cartographer-ros.readthedocs.io/en/latest/algo_walkthrough.html#input)
-
-Opinion: highly important to dense scans properly.
-
----
-
-`high_resolution_adaptive_voxel_filter.max_length`, 
-`low_resolution_adaptive_voxel_filter.max_length`,
-`high_resolution_adaptive_voxel_filter.min_num_points`,
-`low_resolution_adaptive_voxel_filter.min_num_points`
-
-- This filter tries to determine the optimal voxel size (under a max length) to achieve a target number of points. Adaptive voxel filters are used to generate a high resolution and a low resolution point clouds. [source](https://google-cartographer-ros.readthedocs.io/en/latest/algo_walkthrough.html#input)
-
-Opinion: important to dense scans properly.
 
 ---
 
 `TRAJECTORY_BUILDER_nD.imu_gravity_time_constant`
 
 - In order to filter the IMU noise, gravity is observed over a certain amount of time. [source](https://google-cartographer-ros.readthedocs.io/en/latest/algo_walkthrough.html#input)
+- There were no found relevant community guides because (as supposed by the author) it is crutial for handheld robots only. 
 
 Opinion: for handheld robots it is important to set this value properly to know the acurate gravity vector.
 
@@ -73,9 +47,9 @@ Opinion: for handheld robots it is important to set this value properly to know 
 - the `occupied_space_weight_0` and `occupied_space_weight_1` parameters are related, respectively, to the high resolution and low resolution filtered point clouds.
 [source](https://google-cartographer-ros.readthedocs.io/en/latest/algo_walkthrough.html#local-slam-1)
 - [This guide](https://web.archive.org/web/20240302164357/https://daily-tech.hatenablog.com/entry/2019/11/25/062304) suggests to start tuning from finding values for these parameters.
-- Viam SLAM [mentions](https://github.com/viam-modules/viam-cartographer/blob/main/viam-cartographer/lua_files/mapping_new_map.lua)  these parameters as "tunable".
+- Viam Cartographer [mentions](https://github.com/viam-modules/viam-cartographer/blob/main/viam-cartographer/lua_files/mapping_new_map.lua) these parameters as "tunable".
 
-Opinion: important to prioritize input data.
+Opinion: assumed important based on the description provided and user experience.
 
 ---
 
@@ -84,8 +58,9 @@ Opinion: important to prioritize input data.
 - A submap is considered as complete when the local SLAM has received a given amount of range data. <...>. Submaps must be small enough <...>, so that they are locally correct. On the other hand, they should be large enough to be distinct for loop closure.
 [source](https://google-cartographer-ros.readthedocs.io/en/latest/algo_walkthrough.html#local-slam-1)
 - In [this guide](https://web.archive.org/web/20240302164357/https://daily-tech.hatenablog.com/entry/2019/11/25/062304) adjusting the value helped to detect issues with loop closure.
+- Viam Cartographer [mentions](https://github.com/viam-modules/viam-cartographer/blob/main/viam-cartographer/lua_files/mapping_new_map.lua) this parameter as "tunable".
 
-Opinion: As described, it is vital to find the best value.
+Opinion: assumed important based on the description provided and user experience.
 
 ---
 
@@ -97,8 +72,9 @@ Opinion: As described, it is vital to find the best value.
 - Search window in which the best possible scan alignment will be found.
 [source](https://qiita.com/devemin/items/1184d7fc32656b10288e)
 - [This comment](https://github.com/cartographer-project/cartographer_ros/issues/1252#issuecomment-483144785) from top-2 cartographer contributor mentions suggests to set these values smaller than 50, 30 metres. 
+- `linear_search_window` was tuned in [this guide](https://web.archive.org/web/20240302164357/https://daily-tech.hatenablog.com/entry/2019/11/25/062304).
 
-Opinion: is vital for loop closure.
+Opinion: assumed important based on user experience.
 
 ---
 
@@ -109,14 +85,15 @@ Opinion: is vital for loop closure.
 [source](https://qiita.com/devemin/items/1184d7fc32656b10288e)
 - Updating loop closure parameters were crutial for making loop closure work in [this guide](https://web.archive.org/web/20240302164357/https://daily-tech.hatenablog.com/entry/2019/11/25/062304)
 
-Opinion: assumed to be vital as it helped to a user to make loop closure work.
+Opinion: assumed important based on user experience.
 
 ---
 
 `POSE_GRAPH.optimization_problem.acceleration_weight`,
 `POSE_GRAPH.optimization_problem.rotation_weight`,
 `POSE_GRAPH.optimization_problem.local_slam_pose_translation_weight`,
-`POSE_GRAPH.optimization_problem.local_slam_pose_rotation_weight`
+`POSE_GRAPH.optimization_problem.local_slam_pose_rotation_weight`,
+`POSE_GRAPH.optimization_problem.global_sampling_ratio`
 
 - Adjusting these parameters helped the author of [this guide](https://web.archive.org/web/20240302164357/https://daily-tech.hatenablog.com/entry/2019/11/25/062304) to make loop closure work.
 
@@ -125,6 +102,27 @@ Opinion: assumed important as it helped to a user to make loop closure work.
 ---
 
 ## Parameters with unknown importance
+
+---
+
+`TRAJECTORY_BUILDER_nD.voxel_filter_size`
+
+- A small cube size will result in a more dense data representation, causing more computations. A large cube size will result in a data loss but will be much quicker. [source](https://google-cartographer-ros.readthedocs.io/en/latest/algo_walkthrough.html#input)
+- [This guide](https://web.archive.org/web/20240302164357/https://daily-tech.hatenablog.com/entry/2019/11/25/062304) managed to tune cartographer without editing voxel filter size. 
+
+Opinion: it seems to be highly important to dense scans properly, however the user experience shows that the parameter is not critical.
+
+---
+
+`high_resolution_adaptive_voxel_filter.max_length`, 
+`low_resolution_adaptive_voxel_filter.max_length`,
+`high_resolution_adaptive_voxel_filter.min_num_points`,
+`low_resolution_adaptive_voxel_filter.min_num_points`
+
+- This filter tries to determine the optimal voxel size (under a max length) to achieve a target number of points. Adaptive voxel filters are used to generate a high resolution and a low resolution point clouds. [source](https://google-cartographer-ros.readthedocs.io/en/latest/algo_walkthrough.html#input)
+- [This guide](https://web.archive.org/web/20240302164357/https://daily-tech.hatenablog.com/entry/2019/11/25/062304) managed to tune cartographer without editing adaptive voxel parameters. 
+
+Opinion: it seems to be important to dense scans properly, however the user experience shows that the parameter is not critical.
 
 ---
 
@@ -145,8 +143,9 @@ Opinion: seems it affects only performance, not the resulting map. However, sinc
 
 - To avoid inserting too many scans per submaps <...> A scan is dropped if the motion that led to it is not considered as significant enough. A scan is inserted into the current submap only if its motion is above a certain distance, angle or time threshold.
 [source](https://google-cartographer-ros.readthedocs.io/en/latest/algo_walkthrough.html#local-slam-1)
+- [This guide](https://web.archive.org/web/20240302164357/https://daily-tech.hatenablog.com/entry/2019/11/25/062304) and [Viam Cartographer](https://docs.viam.com/services/slam/cartographer/) DOES NOT mention these parameters.
 
-Opinion: if is not clear if too many scans per submaps is bad for map quality or not.
+Opinion: it is not clear if too many scans per submaps is bad for map quality or not. Users managed to tune cartographer without editing this parameter.
 
 ---
 
@@ -155,8 +154,9 @@ Opinion: if is not clear if too many scans per submaps is bad for map quality or
 
 - Resolution of the ‘high/low_resolution’ map in meters. 
 [source](https://qiita.com/devemin/items/1184d7fc32656b10288e)
+- [This guide](https://web.archive.org/web/20240302164357/https://daily-tech.hatenablog.com/entry/2019/11/25/062304) and [Viam Cartographer](https://docs.viam.com/services/slam/cartographer/) DOES NOT mention these parameters.
 
-Opinion: Map resolution is the core element in balancing between map quality and performance. However, it is assumed that it firsly set to some small value (store maps in high resolution) and then, once other parameters are tuned, it can be gradually increased.
+Opinion: Map resolution seems to be the core element for the map quality. However, user experience shows that it is not critical to set it properly.
 
 ---
 
@@ -169,18 +169,9 @@ Opinion: Map resolution is the core element in balancing between map quality and
 [source](https://google-cartographer-ros.readthedocs.io/en/latest/algo_walkthrough.html#global-slam)
 - Once the FastCorrelativeScanMatcher has a good enough proposal (above a minimum score of matching) 
 [source](https://google-cartographer-ros.readthedocs.io/en/latest/algo_walkthrough.html#global-slam)
+- [This guide](https://web.archive.org/web/20240302164357/https://daily-tech.hatenablog.com/entry/2019/11/25/062304) and [Viam Cartographer](https://docs.viam.com/services/slam/cartographer/) DOES NOT mention these parameters.
 
-Opinion: seems it affect only performance, not the resulting map. However, as fast correlative scan matcher mechanism is not clear to author, it is difficult to say if it is important or not.
-
----
-
-`POSE_GRAPH.matcher_translation_weight`,
-`POSE_GRAPH.matcher_rotation_weight`
-
-- Weight used in the optimization problem for the translational component of non-loop-closure scan matcher constraints.
-[source](https://qiita.com/devemin/items/1184d7fc32656b10288e)
-
-Opinion: it mentioned quickly in the [algorithm walkthrough](https://google-cartographer-ros.readthedocs.io/en/latest/algo_walkthrough.html#global-slam) as one of the parameters that worth tuning, but not further explained, so it may be vital for loop closure/matching but effect is not clear.
+Opinion: it seems it affect only performance, not the resulting map. However, as fast correlative scan matcher mechanism is not clear to author, it is difficult to say if it is important or not.
 
 ---
 
@@ -190,8 +181,9 @@ Opinion: it mentioned quickly in the [algorithm walkthrough](https://google-cart
 [source](https://qiita.com/devemin/items/1184d7fc32656b10288e)
 - Helped to the author of [this guide](https://web.archive.org/web/20240302164357/https://daily-tech.hatenablog.com/entry/2019/11/25/062304) to improve SLAM but did not explained. 
 - Mentioned in the [algorithm walkthrough](https://google-cartographer-ros.readthedocs.io/en/latest/algo_walkthrough.html#global-slam) as one of the parameters that worth tuning, however it is not described.
+- [This guide](https://web.archive.org/web/20240302164357/https://daily-tech.hatenablog.com/entry/2019/11/25/062304) tuned the parameter.
 
-Opinion: importance is not clear as its effect is not clear.
+Opinion: despite it helped user, its effect is not clear.
 
 ---
 
@@ -213,18 +205,20 @@ Opinion: these variables must be set according to the sensor used => no reason t
 - Can be set to 0 to disable global SLAM.  [source](https://google-cartographer-ros.readthedocs.io/en/latest/tuning.html#example-tuning-local-slam)
 - How often to execute loop closure. [source](https://qiita.com/devemin/items/1184d7fc32656b10288e)
 - In [this guide](https://web.archive.org/web/20240302164357/https://daily-tech.hatenablog.com/entry/2019/11/25/062304) adjusting the parameter did not give any "drastic changes".
-- Viam SLAM [mentions](https://github.com/viam-modules/viam-cartographer/blob/main/viam-cartographer/lua_files/mapping_new_map.lua) this parameter as "no reason to change".
+- Viam Cartographer [mentions](https://github.com/viam-modules/viam-cartographer/blob/main/viam-cartographer/lua_files/mapping_new_map.lua) this parameter as "no reason to change".
 
 
 Opinion: based on users experience, assumed that the default value is ok.
 
 ---
 
-`use_online_correlative_scan_matching = false`, 
+`use_online_correlative_scan_matching`, 
 `real_time_correlative_scan_matcher.*`
 
 - ... can be enabled if you do not have other sensors or you do not trust them. 
 [source](https://google-cartographer-ros.readthedocs.io/en/latest/algo_walkthrough.html#local-slam-1)
+- [This guide](https://web.archive.org/web/20240302164357/https://daily-tech.hatenablog.com/entry/2019/11/25/062304) and [Viam Cartographer](https://docs.viam.com/services/slam/cartographer/) DOES NOT mention these parameters.
+
 
 Opinion: in current datasets (`HILTI`, `Cartographer examples`) the sensors are accurate enough to not need this feature.
 
@@ -274,8 +268,20 @@ Opinion: despite effect given in the guide, it seems it is not important as odom
 [source2](https://qiita.com/devemin/items/1184d7fc32656b10288e)
 - On RPidar only value of 1 is ok
 [source](https://medium.com/@kabilankb2003/ros2-humble-cartographer-on-nvidia-jetson-nano-with-rplidar-c0dea4480b78)
+- [This guide](https://web.archive.org/web/20240302164357/https://daily-tech.hatenablog.com/entry/2019/11/25/062304) did not edit the parameter.
 
 Opinion: based on example, assumed that setting value to 1 is ok.
+
+---
+
+`POSE_GRAPH.matcher_translation_weight`,
+`POSE_GRAPH.matcher_rotation_weight`
+
+- Weight used in the optimization problem for the translational component of non-loop-closure scan matcher constraints.
+[source](https://qiita.com/devemin/items/1184d7fc32656b10288e)
+- [This guide](https://web.archive.org/web/20240302164357/https://daily-tech.hatenablog.com/entry/2019/11/25/062304) and [Viam Cartographer](https://docs.viam.com/services/slam/cartographer/) DOES NOT mention these parameters.
+
+Opinion: it mentioned quickly in the [algorithm walkthrough](https://google-cartographer-ros.readthedocs.io/en/latest/algo_walkthrough.html#global-slam) as one of the parameters that worth tuning, but not further explained. Moreover, users do not use it => assumed unimportant.
 
 ---
 
