@@ -28,7 +28,7 @@ This section is an adaptation to `ros2` of the [official cartographer guide](htt
 - Download 2D/3D `.bag` sequence. 
 Note: unfortunately, oficial links are not available now (31.10.2024). However, one can find some sequences available on [web archive](http://web.archive.org/web/20170110062030/https://google-cartographer-ros.readthedocs.io/en/latest/data.html). In this tutorial, `b3-2016-02-02-13-32-01.bag` will be used.
 
-- Covert it to ROS2 format as shown [above](#rosbag-to-rosbag2)
+- Convert it to ROS2 format as shown [above](#rosbag-to-rosbag2)
 
 
 ### Launch demo
@@ -43,7 +43,7 @@ ros2 launch cartographer_ros offline_backpack_3d.launch.py bag_filenames:=/path/
 
 ## Custom `.bag` file
 - Download `.bag` file into container. 
-- Covert it to ROS2 format as shown [above](#rosbag-to-rosbag2)
+- Convert it to ROS2 format as shown [above](#rosbag-to-rosbag2)
 
 In this example, [uzh_tracking_area_run2.bag](https://storage.googleapis.com/hilti_challenge/uzh_tracking_area_run2.bag) will be used.
 
