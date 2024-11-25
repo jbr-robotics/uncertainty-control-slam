@@ -13,6 +13,6 @@ Rationale: These parameters define the search area for the best scan match, whic
 Rationale: These parameters directly affect loop closure performance, which is especially important in complex environments with multiple trajectory intersections.
 
 - `POSE_GRAPH.optimization_problem.global_sampling_ratio`
-Rationale: This parameter affects how often global optimization occurs, which is critical for maintaining map consistency under various conditions.
+Rationale: This parameter affects how often global optimization occurs, which is critical for maintaining map consistency.
 
 !! Note that these parameters should be tuned sequentially, starting with local SLAM (first 3 parameters) and then moving to global SLAM parameters (remaining parameters).
