@@ -69,10 +69,14 @@ TODO: fix the fact that the map has very low quality
     ros2 launch cartographer_ros uzh_tracking_area_run2_3D.launch.py bag_filename:=/path/to/uzh_tracking_area_run2
     ```
 
-- In another termminal save the trajectory
+- In another termminal, call `FinishTrajectory` service to save the trajectory
     ```
     ros2 service call /finish_trajectory cartographer_ros_msgs/srv/FinishTrajectory "{trajectory_id: 0}"
+    ```
 
+- Wait until the trajectory is finished (check log in the terminal where cartographer is running) and save the trajectory
+
+    ```
     ros2 service call /write_state cartographer_ros_msgs/srv/WriteState "{filename: '/path/to/uzh_tracking_area_run2.pbstream', include_unfinished_submaps: true}"
     ```
 
@@ -94,3 +98,43 @@ For other bag files one may need to create custom launch file
 - Visualize `.ply` file on host using [meshlab](https://www.meshlab.net/#download) or [point_cloud_viewer](/point_cloud_viewer/)
 
 
+# Map quality estimation
+
+> **Note**: As mentioned in [Cartographer documentation](https://google-cartographer.readthedocs.io/en/latest/evaluation.html#advantages-limitations), this estimation is valid only for local SLAM estimations with optimizations disabled. 
+
+Generate optimized map as described in [Generate pbstream](#generate-pbstream) section. Further we will assume that the file is named `uzh_tracking_area_run2_map.pbstream`.
+
+Next, one can autogenerate ground truth by running:
+```
+cartographer_autogenerate_ground_truth \
+    -pose_graph_filename /path/to/uzh_tracking_area_run2_map.pbstream \
+    -output_filename /path/to/uzh_tracking_area_run2_relations.pbstream \
+    -min_covered_distance 20 \
+    -outlier_threshold_meters 0.15 \
+    -outlier_threshold_radians 0.02
+```
+
+Then, turn off optimization by setting `POSE_GRAPH.optimize_every_n_nodes = 0` in `.lua` configuration file and generate relations again as described above, and launch cartographer with this configuration (as described above).
+
+Next, save the file into `.pbstream` format using `cartographer_save_map` tool as described in [Generate pbstream](#generate-pbstream) section but skip optimization step. We will assume it is named `uzh_tracking_area_run2_test.pbstream`.
+
+Finally, you will have 3 files:
+- `uzh_tracking_area_run2_map.pbstream` test map
+- `uzh_tracking_area_run2_relations.pbstream` relations
+- `uzh_tracking_area_run2_test.pbstream` unoptimized map
+
+To estimate local SLAM quality run: 
+
+```
+cartographer_compute_relations_metrics \
+    -relations_filename /path/to/uzh_tracking_area_run2_relations.pbstream \
+    -pose_graph_filename /path/to/uzh_tracking_area_run2_test.pbstream
+```
+
+Example output: 
+```
+Abs translational error 0.26454 +/- 0.13541 m
+Sqr translational error 0.08812 +/- 0.08872 m^2
+Abs rotational error 1.80877 +/- 1.01483 deg
+Sqr rotational error 4.29034 +/- 4.92501 deg^2
+```
