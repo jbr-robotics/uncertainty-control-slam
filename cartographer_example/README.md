@@ -18,7 +18,7 @@ To convert `rosbag` bag into `rosbag2`, one can use this command
 rosbags-convert --src /path/to/dataset.bag --dst /path/to/dataset
 ```
 
-# Demos and pbstream generation
+# Demo
 
 ## Official Cartographer example
 
@@ -36,20 +36,23 @@ Note: unfortunately, oficial links are not available now (31.10.2024). However, 
 ros2 launch cartographer_ros demo_backpack_3d.launch.py bag_filename:=/path/to/b3-2016-02-02-13-32-01
 ```
 
-### Generate pbstream
+# Generate `.pbstream` file
+
+## Demo datasets
 ```
 ros2 launch cartographer_ros offline_backpack_3d.launch.py bag_filenames:=/path/to/b3-2016-02-02-13-32-01
 ```
 
-## Custom `.bag` file
+## Custom datasets
+
 - Download `.bag` file into container. 
 - Convert it to ROS2 format as shown [above](#rosbag-to-rosbag2)
 
 In this example, [uzh_tracking_area_run2.bag](https://storage.googleapis.com/hilti_challenge/uzh_tracking_area_run2.bag) will be used.
 
-_Note_: this repo additionally contains example for [Basement_1.bag](https://storage.googleapis.com/hilti_challenge/Basement_1.bag)
+_Note_: this repo additionally contains config and launch files for [Basement_1.bag](https://storage.googleapis.com/hilti_challenge/Basement_1.bag)
 
-### 2D
+### Manually 2D
 
 - Start cartographer 
     ```
@@ -60,7 +63,7 @@ _Note_: this repo additionally contains example for [Basement_1.bag](https://sto
     ros2 run nav2_map_server map_saver_cli -f map
     ```
 
-### 3D 
+### Manually 3D
 
 TODO: fix the fact that the map has very low quality
 
@@ -80,7 +83,19 @@ TODO: fix the fact that the map has very low quality
     ros2 service call /write_state cartographer_ros_msgs/srv/WriteState "{filename: '/path/to/uzh_tracking_area_run2.pbstream', include_unfinished_submaps: true}"
     ```
 
-# Pbstream to ply
+### Automatically 3D
+
+For scripts one can use `cartographer_offline_node` to generate `.pbstream` file in one command:
+
+```
+ros2 launch cartographer_ros offline_uzh_tracking_area_run2_3D.launch.py bag_filenames:=/path/to/uzh_tracking_area_run2 skip_seconds:=10
+```
+
+This will generate `/path/to/uzh_tracking_area_run2.pbstream` file in the same directory.
+
+_Note_: one can specify `skip_seconds` to skip some seconds from the beginning of the dataset.
+
+# `.pbstream` to `.ply`
 
 To generate `.ply` file, use `assets_writer_3d.launch.py` for hilti example
 ```
