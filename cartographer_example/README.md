@@ -117,7 +117,7 @@ For other bag files one may need to create custom launch file
 
 > **Note**: As mentioned in [Cartographer documentation](https://google-cartographer.readthedocs.io/en/latest/evaluation.html#advantages-limitations), this estimation is valid only for local SLAM estimations with optimizations disabled. 
 
-Generate optimized map as described in [Generate pbstream](#generate-pbstream) section. Further we will assume that the file is named `uzh_tracking_area_run2_map.pbstream`.
+Generate optimized map as described in [Generate pbstream](#generate-pbstream) section. This will create a map with optimized relations. Further we will assume that the file is named `uzh_tracking_area_run2_map.pbstream`.
 
 Next, one can autogenerate ground truth by running:
 ```
@@ -129,11 +129,14 @@ cartographer_autogenerate_ground_truth \
     -outlier_threshold_radians 0.02
 ```
 
-Then, turn off optimization by setting `POSE_GRAPH.optimize_every_n_nodes = 0` in `.lua` configuration file and generate relations again as described above, and launch cartographer with this configuration (as described above).
+This will take from the map only relations satisfying given thresholds:
+- `min_covered_distance` - loop clousres before the trajectory reach this distance are not considered.
+- `outlier_threshold_meters`, `outlier_threshold_radians` - distance/angle thresholds beyond which constraints are not considered.
 
-Next, save the file into `.pbstream` format using `cartographer_save_map` tool as described in [Generate pbstream](#generate-pbstream) section but skip optimization step. We will assume it is named `uzh_tracking_area_run2_test.pbstream`.
+Then, turn off optimization by setting `POSE_GRAPH.optimize_every_n_nodes = 0` in `.lua` configuration file and do the previous steps again. 
+We will assume that the generated file is named `uzh_tracking_area_run2_test.pbstream`.
 
-Finally, you will have 3 files:
+Finally, there are 3 files:
 - `uzh_tracking_area_run2_map.pbstream` test map
 - `uzh_tracking_area_run2_relations.pbstream` relations
 - `uzh_tracking_area_run2_test.pbstream` unoptimized map
