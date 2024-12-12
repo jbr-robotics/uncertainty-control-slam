@@ -1,48 +1,70 @@
+"""
+  Copyright 2018 The Cartographer Authors
+  Copyright 2022 Wyca Robotics (for the ros2 conversion)
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+"""
+
 from launch import LaunchDescription
-from launch_ros.actions import Node
-from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.conditions import IfCondition, UnlessCondition
+from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import Node, SetRemap
 from launch_ros.substitutions import FindPackageShare
-from launch.actions import ExecuteProcess
-from launch.actions import Shutdown
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 def generate_launch_description():
-    bag_filename_arg = DeclareLaunchArgument(
-        'bag_filename',
-        description='Full path to the bag file to play'
-    )
 
-    cartographer_offline_node = Node(
-        package="cartographer_ros",
-        executable="cartographer_offline_node",
-        on_exit = Shutdown(),
-        output="screen",
-        parameters=[{'use_sim_time': True}],
-        arguments=[
-            "-configuration_directory", PathJoinSubstitution([
-                    FindPackageShare("cartographer_ros"),
-                    "configuration_files",
-                ]),
-            "-configuration_basenames", "uzh_tracking_area_run2_3D.lua",
-            "-bag_filenames", LaunchConfiguration('bag_filename'),
-            "--collect_metrics",
-        ],
-        remappings=[
-            ("/points2", "/os_cloud_node/points"),
-            ("/imu", "/os_cloud_node/imu")
-        ]
-    )
+    ## ***** Launch arguments *****
+    bag_filenames_arg = DeclareLaunchArgument('bag_filenames')
+    no_rviz_arg = DeclareLaunchArgument('no_rviz', default_value='false')
+    rviz_config_arg = DeclareLaunchArgument('rviz_config', default_value = FindPackageShare('cartographer_ros').find('cartographer_ros') + '/configuration_files/uzh_tracking_area_run2_3D.rviz')
+    configuration_directory_arg = DeclareLaunchArgument('configuration_directory', default_value = FindPackageShare('cartographer_ros').find('cartographer_ros') + '/configuration_files')
+    configuration_basenames_arg = DeclareLaunchArgument('configuration_basenames', default_value = 'uzh_tracking_area_run2_3D.lua')
+    skip_seconds_arg = DeclareLaunchArgument('skip_seconds', default_value='0')
+    # urdf_filenames_arg = DeclareLaunchArgument('urdf_filenames', default_value = FindPackageShare('cartographer_ros').find('cartographer_ros') + '/urdf/backpack_3d.urdf')
 
-    occupancy_grid_node = Node(
-        package="cartographer_ros",
-        executable="cartographer_occupancy_grid_node",
-        arguments=["-resolution", "0.05"]
-    )
+    ## ***** Nodes *****
+    offline_node_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(FindPackageShare('cartographer_ros').find('cartographer_ros') + '/launch/uzh_offline_node.launch.py'),
+        launch_arguments = {
+            'bag_filenames': LaunchConfiguration('bag_filenames'),
+            'no_rviz': LaunchConfiguration('no_rviz'),
+            'rviz_config': LaunchConfiguration('rviz_config'),
+            'configuration_directory': LaunchConfiguration('configuration_directory'),
+            'configuration_basenames': LaunchConfiguration('configuration_basenames'),
+            'skip_seconds': LaunchConfiguration('skip_seconds'),
+            # 'urdf_filenames': LaunchConfiguration('urdf_filenames')
+            }.items(),
+        )
+    set_remap1 = SetRemap('/os_cloud_node/points', '/points2')
+    set_remap2 = SetRemap('/os_cloud_node/imu', '/imu')
+
+    # set_remap1 = SetRemap('horizontal_laser_3d', 'points2_1')
+    # set_remap2 = SetRemap('vertical_laser_3d', 'points2_2')
 
     return LaunchDescription([
-        bag_filename_arg,
-        cartographer_offline_node,
-        occupancy_grid_node,
-        # rviz_node,
-        # rosbag_play_process
+        # Launch arguments
+        bag_filenames_arg,
+        no_rviz_arg,
+        rviz_config_arg,
+        configuration_directory_arg,
+        configuration_basenames_arg,
+        skip_seconds_arg,
+        # urdf_filenames_arg,
+
+        # Nodes
+        set_remap1,
+        set_remap2,
+        offline_node_launch,
     ])
