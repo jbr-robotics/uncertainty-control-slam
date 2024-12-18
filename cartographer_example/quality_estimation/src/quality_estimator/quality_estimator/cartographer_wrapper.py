@@ -1,6 +1,7 @@
-import subprocess
+from .ros2_wrapper import Ros2Wrapper
 
-class CartographerOfflineNodeWrapper:
+
+class CartographerOfflineNodeWrapper(Ros2Wrapper):
     def __init__(self):
         # Initialize default values for arguments
         self.collect_metrics = False
@@ -76,15 +77,3 @@ class CartographerOfflineNodeWrapper:
             f"--skip_seconds={self.skip_seconds}"
         ]
         return command
-
-    def run(self):
-        # Run the constructed command
-        command = self.build_command()
-        try:
-            print("Running command:", " ".join(command))
-            process = subprocess.run(command, check=True, capture_output=True, text=True)
-            print("Output:")
-            print(process.stdout)
-        except subprocess.CalledProcessError as e:
-            print("Error executing command:", e)
-            print("Error output:", e.stderr)
