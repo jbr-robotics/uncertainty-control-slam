@@ -11,6 +11,18 @@ python3 -m quality_estimator \
     --skip_seconds=60
 ```
 
+```
+python3 -m quality_estimator.parameter_optimizer \
+    --bag_filename=/workspace/bags/uzh_tracking_area_run2 \
+    --config_dir=/opt/ros/humble/share/cartographer_ros/configuration_files \
+    --config_basename=uzh_tracking_area_run2_3D.lua \
+    --points2_topic=/os_cloud_node/points \
+    --imu_topic=/os_cloud_node/imu \
+    --parameter_grid '{"trajectory_builder.trajectory_builder_3d.ceres_scan_matcher.translation_weight": [15, 20], "map_builder.pose_graph.optimize_every_n_nodes": [30, 60]}' \
+    --skip_seconds=60 \
+    | tee log.log
+```
+
 # Trobleshooting
 
 It is recommended to firstly lauch each steps manually, to verify that everything is ok on each step.

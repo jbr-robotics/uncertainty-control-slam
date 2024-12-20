@@ -131,18 +131,35 @@ class QualityEstimator:
         launcher.run()
         return output_path
 
-    def compute_metrics(self, relations_path: Path, unoptimized_map_path: Path):
+    def compute_metrics(self, relations_path: Path, unoptimized_map_path: Path) -> dict:
         """Compute quality metrics comparing unoptimized map to ground truth.
         
         Args:
             relations_path: Path to ground truth relations
             unoptimized_map_path: Path to unoptimized map
+            
+        Returns:
+            Dictionary containing the computed metrics
         """
         launcher = (CartographerComputeRelationsMetricsLauncher()
             .set_relations_filename(str(relations_path))
             .set_pose_graph_filename(str(unoptimized_map_path)))
             
-        launcher.run()
+        return launcher.run()
+
+    def format_metrics(self, metrics: dict) -> str:
+        """Format metrics dictionary into a readable string.
+        
+        Args:
+            metrics: Dictionary of metrics from compute_metrics()
+            
+        Returns:
+            Formatted string of metrics
+        """
+        lines = []
+        for name, data in metrics.items():
+            lines.append(f"{name}: {data['value']:.5f} ± {data['uncertainty']:.5f} {data['unit']}")
+        return '\n'.join(lines)
 
     def run(self):
         """Execute full quality estimation pipeline."""
@@ -160,7 +177,12 @@ class QualityEstimator:
             unoptimized_map = self.generate_unoptimized_map()
             
             print(f"{prefix}: Computing quality metrics...")
-            self.compute_metrics(relations, unoptimized_map)
+            metrics = self.compute_metrics(relations, unoptimized_map)
+            # Print parsed metrics summary
+            print(f"\n{prefix}: Quality Metrics Summary:")
+            print(self.format_metrics(metrics))
+            
+            return metrics
             
         except Exception as e:
             print(f"{prefix}: Error during quality estimation: {str(e)}")
@@ -204,7 +226,8 @@ def main():
         tmp_dir=args.tmp_dir
     )
     
-    estimator.run()
+    metrics = estimator.run()
+    return metrics  # Useful when called as a module
 
 if __name__ == "__main__":
     main()

@@ -59,7 +59,7 @@ class CartographerAutogenerateGroundTruthLauncher:
         ]
 
         try:
-            subprocess.run(command, check=True, stdout=None, stderr=None)
+            subprocess.run(command, check=True)
             # print("Command output:\n", result.stdout)
             print("Command finished")
         except subprocess.CalledProcessError as e:
