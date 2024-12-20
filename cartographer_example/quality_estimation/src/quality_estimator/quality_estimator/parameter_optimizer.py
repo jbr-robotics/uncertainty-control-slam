@@ -7,6 +7,7 @@ import tempfile
 from dataclasses import dataclass
 from .quality_estimator import QualityEstimator
 from .config_manager import ConfigManager
+import time 
 
 @dataclass
 class ParameterSearchResult:
@@ -110,19 +111,21 @@ class ParameterOptimizer:
         return metrics
         
     def find_best_parameters(self) -> List[ParameterSearchResult]:
-        """Find best parameters for each metric.
-        
-        Returns:
-            List of ParameterSearchResult objects, one per metric
-        """
+        """Find best parameters for each metric."""
         combinations = self._generate_parameter_combinations()
-        print(f"Evaluating {len(combinations)} parameter combinations...")
+        total_combinations = len(combinations)
+        print(f"Evaluating {total_combinations} parameter combinations...")
         
         # Track best results for each metric
         best_results: Dict[str, ParameterSearchResult] = {}
         
+        # Time tracking
+        start_time = time.time()
+        completed = 0
+        
         for i, params in enumerate(combinations):
-            print(f"\nTesting combination {i+1}/{len(combinations)}:")
+            iter_start = time.time()
+            print(f"\nTesting combination {i+1}/{total_combinations}:")
             for param, value in params.items():
                 print(f"  {param}: {value}")
                 
@@ -143,7 +146,8 @@ class ParameterOptimizer:
                             best_parameters=params.copy(),
                             unit=data['unit']
                         )
-                    
+                completed += 1
+                
             except Exception as e:
                 print(f"ERROR: Failed to evaluate parameter set:")
                 for param, value in params.items():
@@ -151,9 +155,29 @@ class ParameterOptimizer:
                 print(f"Error message: {str(e)}")
                 print("Skipping this combination and continuing with next set...")
                 continue
+            
+            
+            # Time estimation
+            iter_time = time.time() - iter_start
+            elapsed_time = time.time() - start_time
+            avg_time = elapsed_time / (i + 1)
+            remaining = total_combinations - (i + 1)
+            estimated_remaining = remaining * avg_time
+            
+            print(f"\nProgress: {i + 1}/{total_combinations}")
+            print(f"Time for this iteration: {iter_time:.1f}s")
+            print(f"Average time per iteration: {avg_time:.1f}s")
+            print(f"Estimated remaining time: {estimated_remaining/60:.1f}m ({estimated_remaining/3600:.1f}h)")
                     
         if not best_results:
             raise RuntimeError("All parameter combinations failed! Check the errors above.")
+        
+        # Print final statistics
+        total_time = time.time() - start_time
+        print(f"\nGrid search completed:")
+        print(f"Total time: {total_time/60:.1f}m ({total_time/3600:.1f}h)")
+        print(f"Successful combinations: {completed}/{total_combinations}")
+        print(f"Average time per iteration: {total_time/total_combinations:.1f}s")
         
         return list(best_results.values())
 
