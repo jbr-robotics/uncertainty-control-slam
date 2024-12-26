@@ -7,7 +7,8 @@ import tempfile
 from dataclasses import dataclass
 from .quality_estimator import QualityEstimator
 from .config_manager import ConfigManager
-import time 
+import time
+import csv
 
 @dataclass
 class ParameterSearchResult:
@@ -29,7 +30,8 @@ class ParameterOptimizer:
                  min_covered_distance: float = 20.0,
                  outlier_threshold_meters: float = 0.15,
                  outlier_threshold_radians: float = 0.02,
-                 skip_seconds: int = 0):
+                 skip_seconds: int = 0,
+                 csv_output: str = None):
         """Initialize parameter optimizer.
         
         Args:
@@ -43,6 +45,7 @@ class ParameterOptimizer:
             outlier_threshold_meters: Distance threshold for outliers
             outlier_threshold_radians: Angular threshold for outliers
             skip_seconds: Seconds to skip from bag start
+            csv_output: Optional path to CSV file for storing results
         """
         self.base_params = {
             'bag_filename': bag_filename,
@@ -56,6 +59,7 @@ class ParameterOptimizer:
             'skip_seconds': skip_seconds
         }
         self.parameter_grid = parameter_grid
+        self.csv_output = csv_output
         
         # Create temporary directory for configurations
         self.tmp_dir = Path(tempfile.mkdtemp(prefix="cartographer_grid_search_"))
@@ -110,6 +114,24 @@ class ParameterOptimizer:
             
         return metrics
         
+    def _write_csv_header(self, fieldnames: List[str]):
+        """Write CSV header if output file is specified."""
+        if not self.csv_output:
+            return
+            
+        with open(self.csv_output, 'w', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+
+    def _write_csv_row(self, row_data: Dict[str, Any]):
+        """Write a row to CSV if output file is specified."""
+        if not self.csv_output:
+            return
+            
+        with open(self.csv_output, 'a', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=list(row_data.keys()))
+            writer.writerow(row_data)
+
     def find_best_parameters(self) -> List[ParameterSearchResult]:
         """Find best parameters for each metric."""
         combinations = self._generate_parameter_combinations()
@@ -123,6 +145,11 @@ class ParameterOptimizer:
         start_time = time.time()
         completed = 0
         
+        # Initialize CSV if needed
+        if self.csv_output:
+            # We'll write the header after we get the first metrics to know all column names
+            self.first_metrics = True
+        
         for i, params in enumerate(combinations):
             iter_start = time.time()
             print(f"\nTesting combination {i+1}/{total_combinations}:")
@@ -132,6 +159,23 @@ class ParameterOptimizer:
             try:
                 metrics = self._evaluate_parameter_set(params)
                 
+                # Write CSV header on first successful iteration
+                if self.csv_output and self.first_metrics:
+                    fieldnames = list(params.keys())  # Parameter names
+                    for metric_name, data in metrics.items():
+                        # Add value and uncertainty columns for each metric
+                        fieldnames.extend([f"{metric_name}_value", f"{metric_name}_uncertainty"])
+                    self._write_csv_header(fieldnames)
+                    self.first_metrics = False
+
+                # Prepare and write CSV row
+                if self.csv_output:
+                    row_data = dict(params)  # Start with parameters
+                    for metric_name, data in metrics.items():
+                        row_data[f"{metric_name}_value"] = data['value']
+                        row_data[f"{metric_name}_uncertainty"] = data['uncertainty']
+                    self._write_csv_row(row_data)
+
                 # Update best results for each metric
                 for metric_name, data in metrics.items():
                     current_value = data['value']
@@ -212,6 +256,10 @@ def main():
     parser.add_argument("--skip_seconds", type=int, default=0,
                       help="Seconds to skip from bag start")
     
+    # Add CSV output argument
+    parser.add_argument("--csv_output", type=str,
+                      help="Path to CSV file for storing grid search results")
+    
     args = parser.parse_args()
     
     # Parse parameter grid from JSON
@@ -228,7 +276,8 @@ def main():
         min_covered_distance=args.min_covered_distance,
         outlier_threshold_meters=args.outlier_threshold_meters,
         outlier_threshold_radians=args.outlier_threshold_radians,
-        skip_seconds=args.skip_seconds
+        skip_seconds=args.skip_seconds,
+        csv_output=args.csv_output
     )
     
     results = optimizer.find_best_parameters()
