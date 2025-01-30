@@ -66,7 +66,7 @@ _Optional:_ You can use the `skip_seconds` parameter to exclude the initial seco
 To generate a `.ply` file, use the `assets_writer_3d.launch.py` script:
 
 ```sh
-ros2 launch cartographer_ros assets_writer_3d.launch.py bag_filenames:=/path/to/uzh_tracking_area_run2 pose_graph_filename:=/path/to/uzh_tracking_area_run2.pbstream
+ros2 launch cartographer_ros assets_writer_3d.launch.py bag_filenames:=/data/uzh_tracking_area_run2 pose_graph_filename:=/data/uzh_tracking_area_run2.pbstream
 ```
 
 # Other Datasets
