@@ -49,7 +49,7 @@ ros2 run nav2_map_server map_saver_cli -f map
 
 ## Offline Cartographer
 
-> **Note:** In this mode, the bag's topics will not be published.
+> **Note:** In this mode, the bag's topics will not be published, which limits debugging capabilities. 
 
 To simplify the process, you can automate map building with a single command:
 
