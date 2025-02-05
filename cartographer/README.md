@@ -37,7 +37,7 @@ This tool optimizes Cartographer parameters using a grid search and integrates t
 #### Example Usage:
 
 ```sh
-cd /root/quality_estimation/src/quality_estimator
+cd /root
 
 python3 -m quality_estimator.parameter_optimizer \
     --bag_filename=/data/kitti_2011_09_26_drive_0117_synced \

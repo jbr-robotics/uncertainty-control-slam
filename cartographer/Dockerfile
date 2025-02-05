@@ -43,7 +43,7 @@ ENV QT_X11_NO_MITSHM=1
 
 COPY ./launch/* /opt/ros/humble/share/cartographer_ros/launch/
 COPY ./configuration_files/* /opt/ros/humble/share/cartographer_ros/configuration_files/
-COPY ./quality_estimation /root/quality_estimation
+COPY ./quality_estimator /root/quality_estimator
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
 WORKDIR /root
