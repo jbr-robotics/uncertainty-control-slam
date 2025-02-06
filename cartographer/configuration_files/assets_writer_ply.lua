@@ -12,7 +12,7 @@ options = {
         },
         {
             action = "fixed_ratio_sampler",
-            sampling_ratio = 0.1, -- Retain only 10% of the points
+            sampling_ratio = 0.01, -- Retain only some % of the points
         },
         -- {
         --     action = "dump_num_points",
