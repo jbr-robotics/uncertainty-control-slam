@@ -65,8 +65,8 @@ python3 -m quality_estimator.parameter_optimizer \
 
 #### Steps:
 
-1. Generate an optimized map as described in the [Generate pbstream](#generate-pbstream) section. This will create a map with optimized relations. Assume the generated file is named `uzh_tracking_area_run2_map.pbstream`.
-
+1. Generate an optimized map as described in the [EXAMPLE.md](./EXAMPLE.md). This will create a map with optimized relations. Assume the generated file is named `uzh_tracking_area_run2_map.pbstream`.
+ 
 2. Auto-generate ground truth using:
    ```sh
    cartographer_autogenerate_ground_truth \
