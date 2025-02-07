@@ -37,6 +37,15 @@ RUN pip3 install \
     rosbags \
     lupa 
 
+# Install map-metrics
+RUN pip3 install Cython==0.29.36      
+RUN pip3 install scikit-learn==0.24.2 --no-build-isolation
+RUN git clone https://github.com/MobileRoboticsSkoltech/map-metrics.git /tmp/map-metrics && \
+    cd /tmp/map-metrics && \
+    sed -i 's/open3d = "^0.14.1"/open3d = "^0.19.0"/g' pyproject.toml && \
+    pip3 install . && \
+    rm -rf /tmp/map-metrics
+
 RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc 
 # Set environment variable to ensure Qt applications like Gazebo can run
 ENV QT_X11_NO_MITSHM=1

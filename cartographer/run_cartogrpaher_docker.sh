@@ -16,5 +16,6 @@ docker run -it \
     --volume="${PWD}/data:/data" \
     --volume="${PWD}/configuration_files:${CARTOGRAPHER_PREFIX}/configuration_files" \
     --volume="${PWD}/launch:${CARTOGRAPHER_PREFIX}/launch" \
+    --volume="${PWD}/quality_estimator:/root/quality_estimator" \
     --device=/dev/dri:/dev/dri \
     cartographer

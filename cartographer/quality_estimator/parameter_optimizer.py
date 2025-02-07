@@ -5,10 +5,13 @@ from pathlib import Path
 from typing import Dict, List, Any
 import tempfile
 from dataclasses import dataclass
-from .quality_estimator import QualityEstimator
-from .config_manager import ConfigManager
 import time
 import csv
+import shutil
+
+from .quality_estimator import QualityEstimator
+from .map_metric_estimator import MapMetricEstimator
+from .config_manager import ConfigManager
 
 @dataclass
 class ParameterSearchResult:
@@ -27,6 +30,7 @@ class ParameterOptimizer:
                  points2_topic: str,
                  imu_topic: str,
                  parameter_grid: Dict[str, List[Any]],
+                 metrics: List[str],
                  min_covered_distance: float = 20.0,
                  outlier_threshold_meters: float = 0.15,
                  outlier_threshold_radians: float = 0.02,
@@ -41,6 +45,7 @@ class ParameterOptimizer:
             points2_topic: Topic name for point cloud data
             imu_topic: Topic name for IMU data
             parameter_grid: Dictionary mapping parameter names to lists of values
+            metrics: List of metrics to evaluate ('relational', 'mme', 'mpv', 'mom')
             min_covered_distance: Minimum distance for ground truth generation
             outlier_threshold_meters: Distance threshold for outliers
             outlier_threshold_radians: Angular threshold for outliers
@@ -59,6 +64,7 @@ class ParameterOptimizer:
             'skip_seconds': skip_seconds
         }
         self.parameter_grid = parameter_grid
+        self.metrics = metrics
         self.csv_output = csv_output
         
         # Create temporary directory for configurations
@@ -77,18 +83,18 @@ class ParameterOptimizer:
         return combinations
         
     def _evaluate_parameter_set(self, params: Dict[str, Any]) -> Dict[str, Dict[str, float]]:
-        """Evaluate one parameter combination.
+        """Evaluate one parameter combination."""
+        metrics = {}
         
-        Args:
-            params: Dictionary of parameter values to test
-            
-        Returns:
-            Dictionary of metrics for this parameter set
-        """
         # Create temporary config with these parameters
         config_dir = self.tmp_dir / "configs"
         config_dir.mkdir(exist_ok=True)
         
+        # Copy all config files from original config directory to temporary config directory
+        original_config_dir = Path(self.base_params['config_dir'])
+        for config_file in original_config_dir.glob("*.lua"):
+            shutil.copy(config_file, config_dir)
+
         # Load and modify configuration
         config_manager = ConfigManager()
         config_manager.load_config(
@@ -103,14 +109,38 @@ class ParameterOptimizer:
         modified_config_path = config_dir / self.base_params['config_basename']
         with open(modified_config_path, "w") as f:
             f.write(config_manager.to_lua_string("options"))
-        
-        # Create estimator with modified config
-        estimator_params = dict(self.base_params)
-        estimator_params['config_dir'] = str(config_dir)
-        estimator_params['tmp_dir'] = str(self.tmp_dir / "estimator")
-        
-        estimator = QualityEstimator(**estimator_params)
-        metrics = estimator.run()
+
+        # Get relational metrics if requested
+        if 'relational' in self.metrics:
+            estimator_params = dict(self.base_params)
+            estimator_params['config_dir'] = str(config_dir)
+            estimator_params['tmp_dir'] = str(self.tmp_dir / "estimator")
+            
+            estimator = QualityEstimator(**estimator_params)
+            metrics.update(estimator.run())
+
+        # Get map metrics if any requested
+        map_metrics = set(self.metrics) & {'mme', 'mpv', 'mom'}
+        if map_metrics:
+            map_estimator = MapMetricEstimator(
+                bag_filename=self.base_params['bag_filename'],
+                config_dir=str(config_dir),
+                config_basename=self.base_params['config_basename'],
+                points2_topic=self.base_params['points2_topic'],
+                imu_topic=self.base_params['imu_topic'],
+                metrics=list(map_metrics),
+                skip_seconds=self.base_params['skip_seconds'],
+                tmp_dir=str(self.tmp_dir / "map_metrics")
+            )
+            
+            # Convert map metrics to match interface with dummy uncertainty and units
+            map_results = map_estimator.run()
+            for metric, value in map_results.items():
+                metrics[metric] = {
+                    'value': value,
+                    'uncertainty': 0.0,
+                    'unit': 'nats' if metric == 'mme' else '?' if metric == 'mpv' else '?'
+                }
             
         return metrics
         
@@ -147,7 +177,6 @@ class ParameterOptimizer:
         
         # Initialize CSV if needed
         if self.csv_output:
-            # We'll write the header after we get the first metrics to know all column names
             self.first_metrics = True
         
         for i, params in enumerate(combinations):
@@ -163,8 +192,12 @@ class ParameterOptimizer:
                 if self.csv_output and self.first_metrics:
                     fieldnames = list(params.keys())  # Parameter names
                     for metric_name, data in metrics.items():
-                        # Add value and uncertainty columns for each metric
-                        fieldnames.extend([f"{metric_name}_value", f"{metric_name}_uncertainty"])
+                        if metric_name in {'mme', 'mpv', 'mom'}:
+                            # Single column for map metrics
+                            fieldnames.append(metric_name)
+                        else:
+                            # Value and uncertainty columns for relational metrics
+                            fieldnames.extend([f"{metric_name}_value", f"{metric_name}_uncertainty"])
                     self._write_csv_header(fieldnames)
                     self.first_metrics = False
 
@@ -172,8 +205,13 @@ class ParameterOptimizer:
                 if self.csv_output:
                     row_data = dict(params)  # Start with parameters
                     for metric_name, data in metrics.items():
-                        row_data[f"{metric_name}_value"] = data['value']
-                        row_data[f"{metric_name}_uncertainty"] = data['uncertainty']
+                        if metric_name in {'mme', 'mpv', 'mom'}:
+                            # Single value for map metrics
+                            row_data[metric_name] = data['value']
+                        else:
+                            # Value and uncertainty for relational metrics
+                            row_data[f"{metric_name}_value"] = data['value']
+                            row_data[f"{metric_name}_uncertainty"] = data['uncertainty']
                     self._write_csv_row(row_data)
 
                 # Update best results for each metric
@@ -199,7 +237,6 @@ class ParameterOptimizer:
                 print(f"Error message: {str(e)}")
                 print("Skipping this combination and continuing with next set...")
                 continue
-            
             
             # Time estimation
             iter_time = time.time() - iter_start
@@ -260,6 +297,12 @@ def main():
     parser.add_argument("--csv_output", type=str,
                       help="Path to CSV file for storing grid search results")
     
+    # Add metric selection argument
+    parser.add_argument("--metrics", nargs='+', 
+                      choices=['relational', 'mme', 'mpv', 'mom'],
+                      default=['relational'],
+                      help="Metrics to evaluate (default: relational)")
+    
     args = parser.parse_args()
     
     # Parse parameter grid from JSON
@@ -273,6 +316,7 @@ def main():
         points2_topic=args.points2_topic,
         imu_topic=args.imu_topic,
         parameter_grid=parameter_grid,
+        metrics=args.metrics,
         min_covered_distance=args.min_covered_distance,
         outlier_threshold_meters=args.outlier_threshold_meters,
         outlier_threshold_radians=args.outlier_threshold_radians,
