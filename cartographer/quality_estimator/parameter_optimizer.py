@@ -11,7 +11,7 @@ import shutil
 import numpy as np
 from scipy.optimize import minimize
 
-from .quality_estimator import QualityEstimator
+from .parameter_estimator import QualityEstimator
 from .map_metric_estimator import MapMetricEstimator
 from .config_manager import ConfigManager
 
