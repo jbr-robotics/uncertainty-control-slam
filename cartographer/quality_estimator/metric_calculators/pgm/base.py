@@ -46,6 +46,9 @@ class BasePgmMetricCalculator(BaseMetricCalculator):
         # Load the PGM file as a matrix using OpenCV
         self.map_data = self._load_pgm()
         
+        # Always invert the map for metrics calculations
+        self.map_data = self._invert_map(self.map_data)
+        
         # Load YAML metadata if available
         self.metadata = None
         if self.yaml_path and self.yaml_path.exists():
@@ -69,6 +72,21 @@ class BasePgmMetricCalculator(BaseMetricCalculator):
             map_data = cv2.cvtColor(map_data, cv2.COLOR_BGR2GRAY)
             
         return map_data
+    
+    def _invert_map(self, map_data: np.ndarray) -> np.ndarray:
+        """Invert the map values (255 - value).
+        
+        For metrics calculations, we invert the grayscale values to ensure
+        consistent interpretation where 0 represents obstacles and 255
+        represents free space.
+        
+        Args:
+            map_data: The map data to invert
+            
+        Returns:
+            numpy.ndarray: Inverted map data
+        """
+        return 255 - map_data
     
     def _load_yaml_metadata(self) -> None:
         """Load the YAML metadata file if available."""

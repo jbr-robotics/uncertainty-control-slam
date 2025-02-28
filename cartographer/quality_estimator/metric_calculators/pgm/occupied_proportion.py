@@ -32,6 +32,21 @@ class OccupiedProportion(BasePgmMetricCalculator):
         """
         # Calculate the mean value of the map
         mean_value = np.mean(self.map_data)
+
+        #################################################
+        print(f"Mean value: {mean_value}")
+        # Draw a histogram of the map data
+        hist, bins = np.histogram(self.map_data, bins=10)
+        
+        # Find the maximum bar height for scaling
+        max_height = np.max(hist)
+        
+        # Draw the histogram bars
+        for i in range(len(hist)):
+            bar_height = int(hist[i] / max_height * 10)  # Scale to 10 characters tall
+            bar = '█' * bar_height
+            print(f"{bins[i]:6.2f} - {bins[i+1]:6.2f} | {bar}")
+        
         
         # Count cells with values greater than the mean
         occupied_cells = np.sum(self.map_data > mean_value)
@@ -61,11 +76,6 @@ def main():
         "--yaml", 
         dest="yaml_file",
         help="Path to the corresponding YAML metadata file (optional)"
-    )
-    parser.add_argument(
-        "--output", 
-        dest="output_file",
-        help="Path to output JSON file (optional, defaults to stdout)"
     )
     
     args = parser.parse_args()
