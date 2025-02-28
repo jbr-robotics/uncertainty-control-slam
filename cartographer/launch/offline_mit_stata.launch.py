@@ -27,10 +27,10 @@ from launch.actions import Shutdown
 def generate_launch_description():
     ## ***** Launch arguments *****
     bag_filenames_arg = DeclareLaunchArgument('bag_filenames')
-    no_rviz_arg = DeclareLaunchArgument('no_rviz', default_value='false')
-    rviz_config_arg = DeclareLaunchArgument('rviz_config', default_value = FindPackageShare('cartographer_ros').find('cartographer_ros') + '/configuration_files/kitti_3D.rviz')
+    no_rviz_arg = DeclareLaunchArgument('no_rviz', default_value='true')
+    rviz_config_arg = DeclareLaunchArgument('rviz_config', default_value = FindPackageShare('cartographer_ros').find('cartographer_ros') + '/configuration_files/mit_stata.rviz')
     configuration_directory_arg = DeclareLaunchArgument('configuration_directory', default_value = FindPackageShare('cartographer_ros').find('cartographer_ros') + '/configuration_files')
-    configuration_basenames_arg = DeclareLaunchArgument('configuration_basenames', default_value = 'kitti_3D.lua')
+    configuration_basenames_arg = DeclareLaunchArgument('configuration_basenames', default_value = 'mit_stata.lua')
     skip_seconds_arg = DeclareLaunchArgument('skip_seconds', default_value='0')
     # urdf_filenames_arg = DeclareLaunchArgument('urdf_filenames', default_value = FindPackageShare('cartographer_ros').find('cartographer_ros') + '/urdf/backpack_3d.urdf')
 
@@ -66,8 +66,10 @@ def generate_launch_description():
         output = 'screen',
         )
 
-    set_remap1 = SetRemap('/kitti/velo/pointcloud', '/points2')
-    set_remap2 = SetRemap('/kitti/oxts/imu', '/imu')
+
+    set_remap1 = SetRemap("/base_scan", "/scan")
+    set_remap2 = SetRemap("/torso_lift_imu/data", "/imu")
+    # set_remap3 = SetRemap("/base_odometry/odom", "/odom")
 
     return LaunchDescription([
         # Launch arguments
@@ -82,6 +84,7 @@ def generate_launch_description():
         # Nodes
         set_remap1,
         set_remap2,
+        # set_remap3,
         cartographer_offline_node_node,
         rviz_node,
         cartographer_occupancy_grid_node,

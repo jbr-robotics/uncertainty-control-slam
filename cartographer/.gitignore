@@ -1,3 +1,4 @@
 data
 .devcontainer
 __pycache__/
+.venv/
