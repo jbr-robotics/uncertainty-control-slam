@@ -95,16 +95,6 @@ class CornerCountCalculator(BasePgmMetricCalculator):
             CornerCountCalculator.CORNER_COUNT
         ]
     
-    def _remap_values(self, map_data: np.ndarray) -> np.ndarray:
-        """Remap the pixel values:
-        Values <= 127 are mapped to 0 (empty or unknown)
-        Values [128, 255] are linearly mapped to [1, 255] (probably occupied)
-        """
-        remapped = np.maximum(0, map_data - 127)
-        remapped = remapped / np.max(remapped) * 255
-        assert np.max(remapped) <= 255, "Kek"
-        return remapped
-    
     def _apply_gaussian_laplace(self, map_data: np.ndarray) -> np.ndarray:
         """Apply Gaussian-Laplace filtering to the map.
         
@@ -116,6 +106,8 @@ class CornerCountCalculator(BasePgmMetricCalculator):
             (self.filter_size, self.filter_size), 
             self.sigma
         )
+        if self.debug:
+            show_image(blurred, "Blurred map")
         laplacian = cv2.Laplacian(blurred, cv2.CV_64F)
         return laplacian
     
@@ -123,17 +115,12 @@ class CornerCountCalculator(BasePgmMetricCalculator):
         if self.debug:
             show_image(map_data, "Original map")
         # Preprocess the map
-        processed_map = self._remap_values(map_data)
-        if self.debug:
-            show_image(processed_map, "Remapped map")
-        processed_map = self._apply_gaussian_laplace(processed_map)
+        processed_map = self._apply_gaussian_laplace(map_data)
         if self.debug:
             show_image(processed_map, "Gaussian-Laplace filtered map")
-        
-        # Use goodFeaturesToTrack with the Harris detector enabled to get distinct corners.
         corners = cv2.goodFeaturesToTrack(
             processed_map.astype(np.float32),
-            maxCorners=1000,
+            maxCorners=10000,
             qualityLevel=self.threshold,
             minDistance=self.min_distance,
             blockSize=self.block_size,
