@@ -7,20 +7,7 @@ import cv2
 from typing import Dict, List, Optional
 
 from ..base_calculator import Metric
-from .base import BasePgmMetricCalculator
-
-def show_image(image: np.ndarray, title: str = "Image", wait_key: bool = True):
-    """Display an image in a window.
-    
-    Args:
-        image: Image to display
-        title: Window title
-        wait_key: Whether to wait for a key press before continuing
-    """
-    cv2.imshow(title, image)
-    if wait_key:
-        cv2.waitKey(0)
-        cv2.destroyWindow(title)
+from .base import BasePgmMetricCalculator, show_image
 
 class EnclosedAreasCalculator(BasePgmMetricCalculator):
     """Calculator for counting enclosed free areas in PGM maps.

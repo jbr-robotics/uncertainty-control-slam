@@ -93,3 +93,16 @@ class BasePgmMetricCalculator(BaseMetricCalculator):
         if self.yaml_path and self.yaml_path.exists():
             with open(self.yaml_path, 'r') as f:
                 self.metadata = yaml.safe_load(f)
+
+def show_image(image: np.ndarray, title: str = "Image", wait_key: bool = True):
+    """Display an image in a window.
+    
+    Args:
+        image: Image to display
+        title: Window title
+        wait_key: Whether to wait for a key press before continuing
+    """
+    cv2.imshow(title, image)
+    if wait_key:
+        cv2.waitKey(0)
+        cv2.destroyWindow(title)

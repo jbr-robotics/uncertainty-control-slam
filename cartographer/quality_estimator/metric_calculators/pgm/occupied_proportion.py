@@ -1,11 +1,11 @@
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import argparse
 import sys
 import json
 
 import numpy as np
 
-from .base import BasePgmMetricCalculator
+from .base import BasePgmMetricCalculator, show_image
 from ...metric import Metric
 
 class OccupiedProportion(BasePgmMetricCalculator):
@@ -18,6 +18,23 @@ class OccupiedProportion(BasePgmMetricCalculator):
     A higher proportion might indicate a more cluttered environment or a map
     with more detected obstacles.
     """
+
+    def __init__(
+        self,
+        map_path: str,
+        yaml_path: Optional[str] = None,
+        debug: bool = False
+    ):
+        """
+        Initialize the occupied proportion calculator.
+        
+        Args:
+            map_path: Path to the PGM map file.
+            yaml_path: Optional path to the corresponding YAML metadata file.
+            debug: Whether to show intermediate images during processing.
+        """
+        super().__init__(map_path, yaml_path)
+        self.debug = debug
 
     @staticmethod
     def get_available_metrics() -> List[str]:
@@ -34,21 +51,23 @@ class OccupiedProportion(BasePgmMetricCalculator):
         mean_value = np.mean(self.map_data)
 
         #################################################
-        print(f"Mean value: {mean_value}")
-        # Draw a histogram of the map data
-        hist, bins = np.histogram(self.map_data, bins=10)
+        # print(f"Mean value: {mean_value}")
+        # # Draw a histogram of the map data
+        # hist, bins = np.histogram(self.map_data, bins=10)
         
-        # Find the maximum bar height for scaling
-        max_height = np.max(hist)
+        # # Find the maximum bar height for scaling
+        # max_height = np.max(hist)
         
-        # Draw the histogram bars
-        for i in range(len(hist)):
-            bar_height = int(hist[i] / max_height * 10)  # Scale to 10 characters tall
-            bar = '█' * bar_height
-            print(f"{bins[i]:6.2f} - {bins[i+1]:6.2f} | {bar}")
+        # # Draw the histogram bars
+        # for i in range(len(hist)):
+        #     bar_height = int(hist[i] / max_height * 10)  # Scale to 10 characters tall
+        #     bar = '█' * bar_height
+        #     print(f"{bins[i]:6.2f} - {bins[i+1]:6.2f} | {bar}")
+
+        if self.debug:
+            show_image((self.map_data > mean_value).astype(np.uint8) * 255, "Occupied cells")
         
         
-        # Count cells with values greater than the mean
         occupied_cells = np.sum(self.map_data > mean_value)
         
         # Calculate the proportion
@@ -77,6 +96,11 @@ def main():
         dest="yaml_file",
         help="Path to the corresponding YAML metadata file (optional)"
     )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Show intermediate images during processing"
+    )
     
     args = parser.parse_args()
     
@@ -84,7 +108,8 @@ def main():
         # Create the metric calculator
         calculator = OccupiedProportion(
             map_path=args.pgm_file,
-            yaml_path=args.yaml_file
+            yaml_path=args.yaml_file,
+            debug=args.debug
         )
         
         # Calculate the metric
