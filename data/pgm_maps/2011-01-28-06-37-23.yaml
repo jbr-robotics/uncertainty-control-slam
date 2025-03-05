@@ -1,0 +1,6 @@
+image: /data/maps/2011-01-28-06-37-23.pgm
+resolution: 0.050000
+origin: [-37.745483, -19.614706, 0.0]
+negate: 0
+occupied_thresh: 0.65
+free_thresh: 0.196
