@@ -6,5 +6,6 @@ of SLAM results using different Lua configurations.
 
 from .relation import RelationMetricsCalculator
 from .entropy_based import EntropyMetricsCalculator
+from .pgm_based import LuaPgmMetricCalculator
 
-__all__ = ['RelationMetricsCalculator', 'EntropyMetricsCalculator'] 
+__all__ = ['RelationMetricsCalculator', 'EntropyMetricsCalculator', 'LuaPgmMetricCalculator'] 

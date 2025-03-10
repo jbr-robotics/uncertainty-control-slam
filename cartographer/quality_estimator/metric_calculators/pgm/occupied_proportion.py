@@ -8,7 +8,7 @@ import numpy as np
 from .base import BasePgmMetricCalculator, show_image
 from ...metric import Metric
 
-class OccupiedProportion(BasePgmMetricCalculator):
+class OccupiedProportionCalculator(BasePgmMetricCalculator):
     """Calculates the proportion of occupied cells in a PGM map.
     
     This metric measures what fraction of the map cells have values greater than
@@ -18,6 +18,9 @@ class OccupiedProportion(BasePgmMetricCalculator):
     A higher proportion might indicate a more cluttered environment or a map
     with more detected obstacles.
     """
+
+    # Define available metrics
+    OCCUPIED_PROPORTION = "occupied_proportion"
 
     def __init__(
         self,
@@ -41,46 +44,61 @@ class OccupiedProportion(BasePgmMetricCalculator):
         """Get list of available metrics for this calculator."""
         return ["occupied_proportion"]
     
-    def calculate(self) -> Dict[str, Metric]:
+    def calculate(self, metrics: Optional[List[str]] = None) -> Dict[str, Metric]:
         """Calculate the occupied proportion metric.
         
+        Args:
+            metrics: Optional list of specific metrics to calculate.
+                    If None, calculate all available metrics.
+        
         Returns:
-            Dict containing the occupied_proportion metric
+            Dictionary mapping metric names to their results
         """
-        # Calculate the mean value of the map
-        mean_value = np.mean(self.map_data)
+        # Validate requested metrics
+        if metrics:
+            self.validate_metrics(metrics)
+        else:
+            metrics = self.get_available_metrics()
+            
+        # Calculate metrics
+        results = {}
+        
+        if self.OCCUPIED_PROPORTION in metrics:
+            # Calculate the mean value of the map
+            mean_value = np.mean(self.map_data)
 
-        #################################################
-        # print(f"Mean value: {mean_value}")
-        # # Draw a histogram of the map data
-        # hist, bins = np.histogram(self.map_data, bins=10)
-        
-        # # Find the maximum bar height for scaling
-        # max_height = np.max(hist)
-        
-        # # Draw the histogram bars
-        # for i in range(len(hist)):
-        #     bar_height = int(hist[i] / max_height * 10)  # Scale to 10 characters tall
-        #     bar = '█' * bar_height
-        #     print(f"{bins[i]:6.2f} - {bins[i+1]:6.2f} | {bar}")
+            #################################################
+            # print(f"Mean value: {mean_value}")
+            # # Draw a histogram of the map data
+            # hist, bins = np.histogram(self.map_data, bins=10)
+            
+            # # Find the maximum bar height for scaling
+            # max_height = np.max(hist)
+            
+            # # Draw the histogram bars
+            # for i in range(len(hist)):
+            #     bar_height = int(hist[i] / max_height * 10)  # Scale to 10 characters tall
+            #     bar = '█' * bar_height
+            #     print(f"{bins[i]:6.2f} - {bins[i+1]:6.2f} | {bar}")
 
-        if self.debug:
-            show_image((self.map_data > mean_value).astype(np.uint8) * 255, "Occupied cells")
-        
-        
-        occupied_cells = np.sum(self.map_data > mean_value)
-        
-        # Calculate the proportion
-        total_cells = self.map_data.size
-        proportion = occupied_cells / total_cells if total_cells > 0 else 0.0
-        return {
-            "occupied_proportion": Metric(
-                name="occupied_proportion",
+            if self.debug:
+                show_image((self.map_data > mean_value).astype(np.uint8) * 255, "Occupied cells")
+            
+            
+            occupied_cells = np.sum(self.map_data > mean_value)
+            
+            # Calculate the proportion
+            total_cells = self.map_data.size
+            proportion = occupied_cells / total_cells if total_cells > 0 else 0.0
+            
+            results[self.OCCUPIED_PROPORTION] = Metric(
+                name=self.OCCUPIED_PROPORTION,
                 value=float(proportion),
                 uncertainty=0.0,  # No uncertainty calculation for this metric
                 unit="fraction"
             )
-        }
+        
+        return results
 
 def main():
     """Command line interface for calculating the occupied proportion metric."""
@@ -106,7 +124,7 @@ def main():
     
     try:
         # Create the metric calculator
-        calculator = OccupiedProportion(
+        calculator = OccupiedProportionCalculator(
             map_path=args.pgm_file,
             yaml_path=args.yaml_file,
             debug=args.debug

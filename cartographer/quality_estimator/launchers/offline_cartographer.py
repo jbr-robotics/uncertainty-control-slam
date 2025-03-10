@@ -11,50 +11,54 @@ from quality_estimator.launchers.base import BaseLauncher
 class OfflineCartographerLauncher(BaseLauncher):
     """Launch offline Cartographer SLAM with specified parameters."""
 
-    # Register all parameters
-    BaseLauncher.register_parameter(
-        "skip_seconds",
-        int,
-        required=True,
-        help="Seconds to skip from the bag file"
-    )
-    BaseLauncher.register_parameter(
-        "no_rviz",
-        str,
-        required=True,
-        help="Disable RViz visualization"
-    )
-    BaseLauncher.register_parameter(
-        "bag_filenames",
-        str,
-        required=True,
-        help="Path to the bag file"
-    )
-    BaseLauncher.register_parameter(
-        "rviz_config",
-        str,
-        required=False,
-        help="Path to the RViz configuration file",
-        default=None
-    )
-    BaseLauncher.register_parameter(
-        "configuration_directory",
-        str,
-        required=True,
-        help="Directory of configuration files"
-    )
-    BaseLauncher.register_parameter(
-        "configuration_basenames",
-        str,
-        required=True,
-        help="Configuration file basenames"
-    )
-    BaseLauncher.register_parameter(
-        "save_state_filename",
-        str,
-        required=True,
-        help="Path to save the final state"
-    )
+    @classmethod
+    def _register_params(cls):
+        """Register all parameters for this launcher."""
+        cls.register_parameter(
+            "skip_seconds",
+            int,
+            required=False,
+            default=0,
+            help="Seconds to skip from the bag file"
+        )
+        cls.register_parameter(
+            "no_rviz",
+            str,
+            required=False,
+            help="Disable RViz visualization",
+            default='false'
+        )
+        cls.register_parameter(
+            "bag_filenames",
+            str,
+            required=True,
+            help="Path to the bag file"
+        )
+        cls.register_parameter(
+            "rviz_config",
+            str,
+            required=False,
+            help="Path to the RViz configuration file",
+            default=None
+        )
+        cls.register_parameter(
+            "configuration_directory",
+            str,
+            required=True,
+            help="Directory of configuration files"
+        )
+        cls.register_parameter(
+            "configuration_basenames",
+            str,
+            required=True,
+            help="Configuration file basenames"
+        )
+        cls.register_parameter(
+            "save_state_filename",
+            str,
+            required=True,
+            help="Path to save the final state"
+        )
 
     def generate_launch_description(self) -> LaunchDescription:
         """Generate launch description for offline Cartographer."""

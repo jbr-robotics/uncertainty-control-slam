@@ -32,18 +32,27 @@ class BaseLauncher(ABC):
     2. Register parameters using register_parameter classmethod
     3. Implement the run() method
     """
-    
-    # Class variable to store parameter definitions
+
     parameters: ClassVar[Dict[str, LauncherParameter]] = {}
-    
-    # Register remapping parameter by default
-    parameters["remap"] = LauncherParameter(
-        type=str,
-        required=False,
-        help="Topic remapping in format '/source_topic;/target_topic' where source_topic is the topic in the bag file and target_topic is the expected topic name (e.g., '/base_scan;/scan' to map from /base_scan to /scan). Can be specified multiple times.",
-        default=None,
-        argparse_kwargs={"action": "append"}
-    )
+
+
+    def __init_subclass__(cls, **kwargs):
+        """Ensure each subclass gets its own parameter dictionary."""
+        super().__init_subclass__(**kwargs)
+        cls.parameters = {}  # Each subclass gets its own independent parameter dictionary
+        
+        # Register remapping parameter by default in each subclass
+        cls.parameters["remap"] = LauncherParameter(
+            type=str,
+            required=False,
+            help="Topic remapping in format '/source_topic;/target_topic' where source_topic is the topic in the bag file and target_topic is the expected topic name (e.g., '/base_scan;/scan' to map from /base_scan to /scan). Can be specified multiple times.",
+            default=None,
+            argparse_kwargs={"action": "append"}
+        )
+
+        # If the subclass defines a `_register_params` method, call it automatically
+        if hasattr(cls, "_register_params") and callable(cls._register_params):
+            cls._register_params()
     
     @classmethod
     def register_parameter(
@@ -126,7 +135,11 @@ class BaseLauncher(ABC):
             for remap_str in kwargs["remap"]:
                 print(f"Remapping: {remap_str}")
                 try:
-                    from_topic, to_topic = remap_str.split(';')
+                    if isinstance(remap_str, str):
+                        from_topic, to_topic = remap_str.split(';')
+                    else:
+                        assert isinstance(remap_str, tuple) and len(remap_str) == 2
+                        from_topic, to_topic = remap_str
                     self.remappings.append((from_topic, to_topic))
                     print(f"Remapping: {from_topic} -> {to_topic}")
                 except ValueError:
@@ -261,3 +274,13 @@ class BaseLauncher(ABC):
             List of SetRemap actions for all registered remappings
         """
         return [SetRemap(from_topic, to_topic) for from_topic, to_topic in self.remappings]
+
+    # def __del__(self):
+    #     """Clean up temporary directory if it was created."""
+    #     if hasattr(self, 'tmp_dir') and self.tmp_dir:
+    #         import shutil
+    #         try:
+    #             shutil.rmtree(self.tmp_dir)
+    #             print(f"Cleaned up temporary directory: {self.tmp_dir}")
+    #         except Exception as e:
+    #             print(f"Failed to clean up temporary directory: {e}")

@@ -59,3 +59,13 @@ class BaseMetricCalculator(ABC):
                 f"Requested metrics {invalid} are not available. "
                 f"Available metrics: {available}"
             )
+
+    # def __del__(self):
+    #     """Clean up temporary directory if it was created."""
+    #     if hasattr(self, 'tmp_dir') and self.tmp_dir:
+    #         import shutil
+    #         try:
+    #             shutil.rmtree(self.tmp_dir)
+    #             print(f"Cleaned up temporary directory: {self.tmp_dir}")
+    #         except Exception as e:
+    #             print(f"Failed to clean up temporary directory: {e}")

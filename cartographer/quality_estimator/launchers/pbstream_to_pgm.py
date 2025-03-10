@@ -15,30 +15,32 @@ class PbstreamToPgmLauncher(BaseLauncher):
     This launcher wraps the cartographer_pbstream_to_ros_map node, which converts
     a pbstream file (serialized Cartographer state) into a ROS map (.pgm and .yaml files).
     """
-    
-    # Register parameters using the class method
-    BaseLauncher.register_parameter(
-        "pbstream_filename",
-        str,
-        required=True,
-        help="Filename of a pbstream to draw a map from."
-    )
-    
-    BaseLauncher.register_parameter(
-        "map_filestem",
-        str,
-        required=False,
-        default="map",
-        help="Stem of the output files (.pgm and .yaml)."
-    )
-    
-    BaseLauncher.register_parameter(
-        "resolution",
-        float,
-        required=False,
-        default=0.05,
-        help="Resolution of a grid cell in the drawn map in meters per pixel."
-    )
+
+    @classmethod
+    def _register_params(cls):
+        # Register parameters using the class method
+        cls.register_parameter(
+            "pbstream_filename",
+            str,
+            required=True,
+            help="Filename of a pbstream to draw a map from."
+        )
+        
+        cls.register_parameter(
+            "map_filestem",
+            str,
+            required=False,
+            default="map",
+            help="Stem of the output files (.pgm and .yaml)."
+        )
+        
+        cls.register_parameter(
+            "resolution",
+            float,
+            required=False,
+            default=0.05,
+            help="Resolution of a grid cell in the drawn map in meters per pixel."
+        )
     
     def generate_launch_description(self) -> LaunchDescription:
         """Generate launch description for the pbstream to pgm conversion."""
