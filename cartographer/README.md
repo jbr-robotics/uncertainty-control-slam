@@ -30,6 +30,18 @@ To convert a `rosbag` file into the `rosbag2` format, use the following command:
 rosbags-convert --src /path/to/dataset.bag --dst /path/to/dataset
 ```
 
+### `ros2 bag rename`
+
+Since Cartographer expects rosbag files to have specific topic names, and not all tools in this repository support topics remapping, it is recommended to use the `ros2bag_tools` to rename the topics as specified in the [documentation](https://google-cartographer-ros.readthedocs.io/en/latest/ros_api.html#subscribed-topics).
+
+```sh
+ros2 bag rename \
+    -o /path/to/renamed_bag_dir \
+    -t /original_topic_name --name /new_topic_name \
+    -t /original_topic_name2 --name /new_topic_name2 \
+    /path/to/bag_dir/
+```
+
 ### Parameter Optimizer
 
 This tool optimizes Cartographer parameters using a grid search and integrates the [Cartographer evaluation tool](https://google-cartographer.readthedocs.io/en/latest/evaluation.html) for quality estimation.

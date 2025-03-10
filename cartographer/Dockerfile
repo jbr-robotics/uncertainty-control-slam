@@ -44,7 +44,19 @@ RUN git clone https://github.com/MobileRoboticsSkoltech/map-metrics.git /tmp/map
     pip3 install . && \
     rm -rf /tmp/map-metrics
 
+# # Install ros2bag tools
+RUN mkdir -p /root/ros2_ws/src && \
+    cd /root/ros2_ws/src && \
+    git clone https://github.com/Seva-Vaskin/ros2bag_tools.git && \
+    cd /root/ros2_ws && \
+    rosdep install --from-paths src --ignore-src -r -y && \
+    colcon build --symlink-install 
+RUN pip3 install pandas numexpr==2.8.4 bottleneck==1.3.6
+RUN pip3 install -U argcomplete
+
 RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc 
+RUN echo "source /root/ros2_ws/install/setup.bash" >> ~/.bashrc 
+
 # Set environment variable to ensure Qt applications like Gazebo can run
 ENV QT_X11_NO_MITSHM=1
 
