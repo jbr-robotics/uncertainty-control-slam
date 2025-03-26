@@ -40,9 +40,6 @@ class AssetsWriterLauncher(BaseLauncher):
     def generate_launch_description(self) -> LaunchDescription:
         """Generate launch description for the assets writer."""
         
-        # Create assets writer node
-        # TODO: is there a need to remap bag topics to /scan /points2 ... ?
-        #       I guess standard remapping won't work here as the topics are not broadcasted
         assets_writer_node = LaunchNode(
             package='cartographer_ros',
             executable='cartographer_assets_writer',
