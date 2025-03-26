@@ -25,10 +25,10 @@ def generate_launch_description():
             "-configuration_basename", "mit_stata.lua",
             "--collect_metrics",
         ],
-        remappings=[
-            ("/scan", "/base_scan"),
-            ("/imu", "/torso_lift_imu/data")
-        ]
+        # remappings=[
+        #     ("/scan", "/base_scan"),
+        #     ("/imu", "/torso_lift_imu/data")
+        # ]
     )
 
     occupancy_grid_node = Node(
@@ -65,4 +65,3 @@ def generate_launch_description():
         rviz_node,
         rosbag_play_process
     ])
-1
