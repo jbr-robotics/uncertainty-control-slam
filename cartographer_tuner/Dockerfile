@@ -7,6 +7,7 @@ RUN apt-get update \
     && apt-get install -y \
         ros-humble-cartographer \
         ros-humble-cartographer-ros \
+        ros-humble-cartographer-rviz \
         python3-pip \
         curl
 

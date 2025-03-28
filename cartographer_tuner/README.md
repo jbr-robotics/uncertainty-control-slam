@@ -17,11 +17,22 @@ Usage example:
 - `pgm-occupied-proportion /path/to/map.pgm`
 - `pgm-enclosed-areas /path/to/map.pgm`
 
+## Config evaluation methods
+
+TODO
+
 ## System Requirements
 
 This package requires the following external tools to be installed (for some functionality):
 
 - `cartographer` - Google Cartographer SLAM library
-  - Installation: `sudo apt-get install ros-<version>-cartographer`
 - `cartographer_ros` - ROS 2 integration for Cartographer
-  - Installation: `sudo apt-get install ros-<version>-cartographer-ros`
+- `rviz` - ROS2 integration for RViz
+
+Dependecy installation:
+```
+sudo apt-get install \
+    ros-${ROS_DISTRO}-cartographer-ros \
+    ros-${ROS_DISTRO}-cartographer \
+    ros-${ROS_DISTRO}-cartographer-rviz
+```
