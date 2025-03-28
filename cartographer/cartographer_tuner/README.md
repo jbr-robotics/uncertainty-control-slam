@@ -11,15 +11,39 @@ pip install cartographer-tuner
 
 The tool implements metrics presented in [2D SLAM Quality Evaluation Methods](https://arxiv.org/abs/1708.02354).
 
-Usage example:
+Example
 
 - `pgm-corner-count /path/tp/map.pgm`
 - `pgm-occupied-proportion /path/to/map.pgm`
 - `pgm-enclosed-areas /path/to/map.pgm`
 
-## Config evaluation methods
+## Map building 
 
-TODO
+The tool may build 2D map out of rosbag file via cartographer. 
+
+_Note_: rosbag file must contain topics named according to cartographer requirements: `/imu`, `/scan`, etc
+
+Example:
+```
+lua-to-pgm \
+    --bag_filename=/data/bags/2011-01-28-06-37-23 \
+    --configuration_directory=/opt/ros/humble/share/cartographer_ros/configuration_files \
+    --configuration_basenames=mit_stata.lua \
+    --map_filestem=/data/maps/2011-01-28-06-37-23_test 
+```
+
+
+## Configuration evaluation
+
+One can combine map building and evaluation in one step.
+
+Example:
+```
+lua-pgm-metrics \
+    --bag_filename=/data/bags/2011-01-28-06-37-23 \
+    --config_dir=/opt/ros/humble/share/cartographer_ros/configuration_files \
+    --config_basename=mit_stata.lua
+```
 
 ## System Requirements
 
