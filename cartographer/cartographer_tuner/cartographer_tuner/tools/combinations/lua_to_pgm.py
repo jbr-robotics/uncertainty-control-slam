@@ -3,10 +3,10 @@ from pathlib import Path
 
 from cartographer_tuner.tools.ros.offline_cartographer_launcher import OfflineCartographerLauncher
 from cartographer_tuner.tools.ros.pbstream_to_pgm_launcher import PbstreamToPgmLauncher
-from cartographer_tuner.tools.base_tool import BaseTool
+from cartographer_tuner.utils.terminal_runnable import TerminalRunnable
 from cartographer_tuner.tools.exceptions import ExternalToolRunException
 
-class LuaToPgmLauncher(BaseTool):
+class LuaToPgmLauncher(TerminalRunnable):
     """Launcher for generating PGM maps from bag files using Cartographer with Lua configuration.
     """
     

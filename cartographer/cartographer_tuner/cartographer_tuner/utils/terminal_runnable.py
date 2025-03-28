@@ -1,13 +1,26 @@
 from abc import ABC, abstractmethod
 import argparse
 from typing import ClassVar, Dict, Any, Type
+from dataclasses import dataclass, field
 
-from cartographer_tuner.tools.tool_parameter import ToolParameter
+__all__ = [
+    "CliParameter", 
+    "TerminalRunnable"
+    ]
 
-class BaseTool(ABC):
-    """Abstract base class for all external tools."""
+@dataclass
+class CliParameter:
+    type: Type
+    required: bool = True
+    help: str = ""
+    default: Any = None
+    argparse_kwargs: Dict[str, Any] = field(default_factory=dict)
 
-    parameters: ClassVar[Dict[str, ToolParameter]] = {}
+
+class TerminalRunnable(ABC):
+    """Abstract base class for all terminal runnable tools."""
+
+    parameters: ClassVar[Dict[str, CliParameter]] = {}
 
     @abstractmethod
     def run(self) -> None:
@@ -41,7 +54,7 @@ class BaseTool(ABC):
         default: Any = None,
         **argparse_kwargs
     ) -> None:
-        cls.parameters[name] = ToolParameter(
+        cls.parameters[name] = CliParameter(
             type=param_type,
             required=required,
             help=help,

@@ -6,13 +6,13 @@ from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 
 from cartographer_tuner.tools.exceptions import ExternalToolParameterException
-from cartographer_tuner.tools.base_tool import BaseTool
+from cartographer_tuner.utils.terminal_runnable import TerminalRunnable
 
 __all__ = [
     "BaseRosTool"
 ]
 
-class BaseRosTool(BaseTool):
+class BaseRosTool(TerminalRunnable):
     """
     Abstract base class for all ros tools.
     """
