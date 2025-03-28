@@ -16,7 +16,8 @@ class OccupiedProportionCalculator(BasePgmMetricCalculator):
         self,
         map_path: str,
         yaml_path: Optional[str] = None,
-        debug: bool = False
+        debug: bool = False,
+        **kwargs,
     ):
         super().__init__(map_path, yaml_path)
         self.debug = debug

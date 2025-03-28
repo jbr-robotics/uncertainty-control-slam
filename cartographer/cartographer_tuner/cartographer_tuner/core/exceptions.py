@@ -1,37 +1,37 @@
-from cartographer_tuner.exceptions import CartographerTunerError
+from cartographer_tuner.exceptions import CartographerTunerException
 
 __all__ = [
-    'CartographerConfigError',
-    'CartographerDependencyError',
-    'ConfigLoadError',
-    'ConfigParseError',
-    'InvalidParameterError',
-    'ConfigFileError',
+    'CartographerConfigException',
+    'CartographerDependencyException',
+    'ConfigLoadException',
+    'ConfigParseException',
+    'InvalidParameterException',
+    'ConfigFileException',
 ]
 
 
-class CartographerConfigError(CartographerTunerError):
-    """Base exception for errors related to Cartographer configuration."""
+class CartographerConfigException(CartographerTunerException):
+    """Base exception for Exceptions related to Cartographer configuration."""
     pass
 
 
-class ConfigLoadError(CartographerConfigError):
+class ConfigLoadException(CartographerConfigException):
     """Exception raised when a configuration file cannot be loaded."""
     pass
 
 
-class ConfigParseError(CartographerConfigError):
+class ConfigParseException(CartographerConfigException):
     """Exception raised when a configuration cannot be parsed."""
     pass
 
 
-class InvalidParameterError(CartographerConfigError):
+class InvalidParameterException(CartographerConfigException):
     """Exception raised when accessing or setting an invalid parameter."""
     pass
 
 
-class ConfigFileError(CartographerConfigError):
-    """Exception raised for file operation errors when saving/loading configs."""
+class ConfigFileException(CartographerConfigException):
+    """Exception raised for file operation Exceptions when saving/loading configs."""
     pass
 
 

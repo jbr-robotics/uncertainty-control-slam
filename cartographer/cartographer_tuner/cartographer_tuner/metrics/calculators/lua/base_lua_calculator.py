@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Optional
 
 from cartographer_tuner.metrics.calculators.base_metric_calculator import BaseMetricCalculator
-from cartographer_tuner.metrics.calculators.exceptions import CalculatorFileNotFoundError
+from cartographer_tuner.metrics.calculators.exceptions import CalculatorFileNotFoundException
 
 __all__ = ["BaseLuaMetricCalculator"]
 
@@ -24,10 +24,10 @@ class BaseLuaMetricCalculator(BaseMetricCalculator):
         self.skip_seconds = skip_seconds
         
         if not self.bag_filename.exists():
-            raise CalculatorFileNotFoundError(f"Bag file not found: {self.bag_filename}")
+            raise CalculatorFileNotFoundException(f"Bag file not found: {self.bag_filename}")
         if not self.config_dir.exists():
-            raise CalculatorFileNotFoundError(f"Config directory not found: {self.config_dir}")
+            raise CalculatorFileNotFoundException(f"Config directory not found: {self.config_dir}")
         if not (self.config_dir / self.config_basename).exists():
-            raise CalculatorFileNotFoundError(f"Config file not found: {self.config_dir / self.config_basename}")
+            raise CalculatorFileNotFoundException(f"Config file not found: {self.config_dir / self.config_basename}")
         
         self.tmp_dir = Path(tmp_dir) if tmp_dir else None

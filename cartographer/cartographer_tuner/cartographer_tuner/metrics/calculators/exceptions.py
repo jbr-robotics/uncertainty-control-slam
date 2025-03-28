@@ -1,15 +1,15 @@
 """Exceptions for metric calculation operations."""
 
 from typing import List, Set, Optional
-from cartographer_tuner.exceptions import CartographerTunerError
+from cartographer_tuner.exceptions import CartographerTunerException
 
 
-class MetricCalculatorError(CartographerTunerError):
-    """Base exception for all metric-related errors."""
+class MetricCalculatorException(CartographerTunerException):
+    """Base exception for all metric-related Exceptions."""
     pass
 
 
-class MetricNotAvailableError(MetricCalculatorError):
+class MetricNotAvailableException(MetricCalculatorException):
     """Exception raised when requested metrics are not available."""
     
     def __init__(
@@ -31,15 +31,15 @@ class MetricNotAvailableError(MetricCalculatorError):
         super().__init__(message)
 
 
-class MetricCalculationError(MetricCalculatorError):
+class MetricCalculationException(MetricCalculatorException):
     """Exception raised when metric calculation fails."""
     pass
 
-class CalculatorFileNotFoundError(MetricCalculatorError, FileNotFoundError):
+class CalculatorFileNotFoundException(MetricCalculatorException, FileNotFoundError):
     """Exception raised when calculator input file is not found."""
     pass
 
-class CalculatorFileFormatError(MetricCalculatorError, ValueError):
+class CalculatorFileFormatException(MetricCalculatorException, ValueError):
     """Exception raised when calculator input file has invalid format."""
     pass
 

@@ -22,7 +22,8 @@ class EnclosedAreasCalculator(BasePgmMetricCalculator):
         candidate_start: int = 255,
         candidate_end: int = 200,
         candidate_step: int = 5,
-        debug: bool = False
+        debug: bool = False,
+        **kwargs,
     ):
         super().__init__(map_path, yaml_path)
         self.undefined_value = undefined_value

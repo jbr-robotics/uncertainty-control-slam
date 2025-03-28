@@ -22,7 +22,8 @@ class CornerCountCalculator(BasePgmMetricCalculator):
         sigma: float = 1.0,
         min_blob_size: int = 5,
         max_corners: int = 10000,
-        debug: bool = False
+        debug: bool = False,
+        **kwargs,
     ):
         """Initialize the corner count calculator.
         

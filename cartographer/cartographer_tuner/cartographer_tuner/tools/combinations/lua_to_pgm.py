@@ -1,13 +1,6 @@
 import tempfile
 from pathlib import Path
 
-from launch import LaunchDescription, LaunchService
-from launch.actions import DeclareLaunchArgument, Shutdown
-from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import Node as LaunchNode
-from launch_ros.actions import SetRemap
-
-
 from cartographer_tuner.tools.ros.offline_cartographer_launcher import OfflineCartographerLauncher
 from cartographer_tuner.tools.ros.pbstream_to_pgm_launcher import PbstreamToPgmLauncher
 from cartographer_tuner.tools.base_tool import BaseTool
@@ -32,7 +25,7 @@ class LuaToPgmLauncher(BaseTool):
             help="Directory containing Lua configuration files"
         )
         cls.register_parameter(
-            "configuration_basenames",
+            "configuration_basename",
             str,
             required=True,
             help="Base name of the Lua configuration file"
@@ -89,14 +82,13 @@ class LuaToPgmLauncher(BaseTool):
     
     def run_offline_cartographer(self, directory: Path) -> None:
         cartographer_params = {
-            "bag_filenames": str(self._bag_filenames),
+            "bag_filename": str(self._bag_filename),
             "configuration_directory": str(self._configuration_directory),
-            "configuration_basenames": self._configuration_basenames,
+            "configuration_basename": self._configuration_basename,
             "skip_seconds": self._skip_seconds,
             "no_rviz": self._no_rviz,
             "rviz_config": self._rviz_config,
-            "save_state_filename": str(self._pbstream_path), 
-            "remap": self.remappings
+            "save_state_filename": str(self.pbstream_path(directory)), 
         }
             
         cartographer_launcher = OfflineCartographerLauncher(**cartographer_params)
@@ -106,8 +98,8 @@ class LuaToPgmLauncher(BaseTool):
         except Exception as e:
             raise ExternalToolRunException(f"Failed to run offline Cartographer: {str(e)}")
 
-        if not self._pbstream_path.exists():
-            raise ExternalToolRunException(f"pbstream file was not created: {self._pbstream_path}")
+        if not self.pbstream_path(directory).exists():
+            raise ExternalToolRunException(f"pbstream file was not created: {self.pbstream_path(directory)}")
 
     def run_pbstream_to_pgm(self, directory: Path) -> None:
         pgm_launcher = PbstreamToPgmLauncher(
@@ -121,10 +113,10 @@ class LuaToPgmLauncher(BaseTool):
         except Exception as e:
             raise ExternalToolRunException(f"Failed to convert pbstream to PGM map: {str(e)}")
         
-        if not self._pgm_path.exists():
-            raise ExternalToolRunException(f"PGM map file was not created: {self._pgm_path}")
-        if not self._yaml_path.exists():
-            raise ExternalToolRunException(f"YAML metadata file was not created: {self._yaml_path}")
+        if not self.pgm_path.exists():
+            raise ExternalToolRunException(f"PGM map file was not created: {self.pgm_path}")
+        if not self.yaml_path.exists():
+            raise ExternalToolRunException(f"YAML metadata file was not created: {self.yaml_path}")
 
     def run(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:

@@ -6,13 +6,13 @@ import shutil
 from typing import Dict, Any, Union, Optional, List
 
 from cartographer_tuner.core.exceptions import (
-    ConfigLoadError,
-    ConfigParseError,
-    InvalidParameterError,
-    ConfigFileError,
+    ConfigLoadException,
+    ConfigParseException,
+    InvalidParameterException,
+    ConfigFileException,
 )
 
-from cartographer_tuner.exceptions import CartographerDependencyError
+from cartographer_tuner.exceptions import CartographerDependencyException
 
 class CartographerConfigManager:
     """
@@ -35,10 +35,10 @@ class CartographerConfigManager:
         Verify that all required external tools are available.
         
         Raises:
-            CartographerDependencyError: If a required dependency is missing
+            CartographerDependencyException: If a required dependency is missing
         """
         if not shutil.which("cartographer_print_configuration"):
-            raise CartographerDependencyError(
+            raise CartographerDependencyException(
                 "Required tool 'cartographer_print_configuration' is missing. "
                 "Please install it via ROS packages before using this package."
             )
@@ -55,8 +55,8 @@ class CartographerConfigManager:
             Dict containing the parsed configuration
             
         Raises:
-            ConfigLoadError: If the configuration can't be loaded
-            ConfigParseError: If the configuration can't be parsed
+            ConfigLoadException: If the configuration can't be loaded
+            ConfigParseException: If the configuration can't be parsed
         """
         config_path = Path(config_path)
         
@@ -73,7 +73,7 @@ class CartographerConfigManager:
                 parsed_result = self.lua.execute(lua_code)
                 raw_config = self._lua_table_to_python(parsed_result)
             except Exception as e:
-                raise ConfigParseError(f"Failed to parse configuration: {str(e)}")
+                raise ConfigParseException(f"Failed to parse configuration: {str(e)}")
             
             if isinstance(raw_config, dict) and "options" in raw_config:
                 self._config = raw_config["options"]
@@ -82,10 +82,10 @@ class CartographerConfigManager:
                 
             return self._config
             
-        except (ConfigParseError, ConfigLoadError):
+        except (ConfigParseException, ConfigLoadException):
             raise
         except Exception as e:
-            raise ConfigLoadError(f"Failed to load configuration: {str(e)}")
+            raise ConfigLoadException(f"Failed to load configuration: {str(e)}")
     
     def _run_cartographer_config_tool(self, config_dir: str, config_basename: str) -> str:
         """
@@ -99,7 +99,7 @@ class CartographerConfigManager:
             String containing Lua code with the full configuration
             
         Raises:
-            ConfigLoadError: If the tool fails
+            ConfigLoadException: If the tool fails
         """
         cmd = [
             "cartographer_print_configuration",
@@ -115,8 +115,8 @@ class CartographerConfigManager:
                 check=True
             )
             return result.stdout
-        except subprocess.CalledProcessError as e:
-            raise ConfigLoadError(f"Failed to run cartographer_print_configuration: {e.stderr}")
+        except subprocess.CalledProcessException as e:
+            raise ConfigLoadException(f"Failed to run cartographer_print_configuration: {e.stderr}")
     
     def _lua_table_to_python(self, obj) -> Union[Dict, List, Any]:
         """
@@ -156,12 +156,12 @@ class CartographerConfigManager:
             Parameter value
             
         Raises:
-            InvalidParameterError: If the parameter or any part of its path doesn't exist
+            InvalidParameterException: If the parameter or any part of its path doesn't exist
         """
         try:
             return self[param_path]
         except KeyError as e:
-            raise InvalidParameterError(str(e))
+            raise InvalidParameterException(str(e))
     
     def set(self, param_path: str, value: Any) -> None:
         """
@@ -172,12 +172,12 @@ class CartographerConfigManager:
             value: Value to set
             
         Raises:
-            InvalidParameterError: If the parameter path can't be created
+            InvalidParameterException: If the parameter path can't be created
         """
         try:
             self[param_path] = value
         except KeyError as e:
-            raise InvalidParameterError(str(e))
+            raise InvalidParameterException(str(e))
     
     def _dict_to_lua_string(self, d: Dict[str, Any], indent: int = 0) -> str:
         """
@@ -244,13 +244,13 @@ class CartographerConfigManager:
             file_path: Path where to save the configuration
             
         Raises:
-            ConfigFileError: If the file cannot be written
+            ConfigFileException: If the file cannot be written
         """
         try:
             with open(file_path, 'w') as f:
                 f.write(str(self))
         except (IOError, OSError) as e:
-            raise ConfigFileError(f"Failed to save configuration to {file_path}: {str(e)}")
+            raise ConfigFileException(f"Failed to save configuration to {file_path}: {str(e)}")
     
     def __str__(self) -> str:
         """

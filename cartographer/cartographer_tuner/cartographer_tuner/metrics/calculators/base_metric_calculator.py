@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Optional, List
 from cartographer_tuner.metrics.metric import Metric
-from cartographer_tuner.metrics.calculators.exceptions import MetricNotAvailableError
+from cartographer_tuner.metrics.calculators.exceptions import MetricNotAvailableException
 
 __all__ = ["BaseMetricCalculator"]
 
@@ -21,29 +21,29 @@ class BaseMetricCalculator(ABC):
             Dictionary mapping metric names to their results
             
         Raises:
-            MetricNotAvailableError: If requested metrics are not available
-            MetricCalculationError: If calculation of a specific metric fails
+            MetricNotAvailableException: If requested metrics are not available
+            MetricCalculationException: If calculation of a specific metric fails
         """
         pass
 
     METRIC_NAMES = []
     
-    @property
-    def available_metrics(self) -> List[str]:
+    @classmethod
+    def available_metrics(cls) -> List[str]:
         """Get list of available metrics for this calculator.
         
         Returns:
             List of metric names that can be calculated
         """
-        return self.__class__.METRIC_NAMES
+        return cls.METRIC_NAMES
     
     def _process_metric_names(self, metrics: Optional[List[str]] = None) -> List[str]:
         if metrics is None:
-            metrics = self.available_metrics
-        available = set(self.available_metrics)
+            metrics = self.available_metrics()
+        available = set(self.available_metrics())
         invalid = set(metrics) - available
         if invalid:
-            raise MetricNotAvailableError(
+            raise MetricNotAvailableException(
                 requested_metrics=metrics,
                 available_metrics=available
             )

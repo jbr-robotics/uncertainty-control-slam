@@ -29,7 +29,7 @@ class OfflineCartographerLauncher(BaseRosTool):
             default='false'
         )
         cls.register_parameter(
-            "bag_filenames",
+            "bag_filename",
             str,
             required=True,
             help="Path to the bag file"
@@ -48,7 +48,7 @@ class OfflineCartographerLauncher(BaseRosTool):
             help="Directory of configuration files"
         )
         cls.register_parameter(
-            "configuration_basenames",
+            "configuration_basename",
             str,
             required=True,
             help="Configuration file basenames"
@@ -87,8 +87,8 @@ class OfflineCartographerLauncher(BaseRosTool):
             on_exit=Shutdown(),
             arguments=[
                 '-configuration_directory', self.get_launch_configuration('configuration_directory'),
-                '-configuration_basenames', self.get_launch_configuration('configuration_basenames'),
-                '-bag_filenames', self.get_launch_configuration('bag_filenames'),
+                '-configuration_basenames', self.get_launch_configuration('configuration_basename'),
+                '-bag_filenames', self.get_launch_configuration('bag_filename'),
                 '-skip_seconds', self.get_launch_configuration('skip_seconds'),
                 '-save_state_filename', self.get_launch_configuration('save_state_filename'),
             ],

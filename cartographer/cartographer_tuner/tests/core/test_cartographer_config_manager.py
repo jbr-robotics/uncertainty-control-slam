@@ -7,12 +7,12 @@ from unittest.mock import patch, MagicMock, mock_open
 
 from cartographer_tuner.core.cartographer_config_manager import CartographerConfigManager
 from cartographer_tuner.core.exceptions import (
-    ConfigLoadError,
-    ConfigParseError,
-    InvalidParameterError,
-    ConfigFileError,
+    ConfigLoadException,
+    ConfigParseException,
+    InvalidParameterException,
+    ConfigFileException,
 )
-from cartographer_tuner.exceptions import CartographerDependencyError
+from cartographer_tuner.exceptions import CartographerDependencyException
 
 # Test data paths
 DATA_DIR = Path(__file__).parent.parent / "data"
@@ -45,7 +45,7 @@ def test_init_dependency_check_failure():
     """Test failed dependency check during initialization."""
     with patch('shutil.which') as mock_which:
         mock_which.return_value = None
-        with pytest.raises(CartographerDependencyError):
+        with pytest.raises(CartographerDependencyException):
             CartographerConfigManager()
 
 def test_load_config_success(config_manager, sample_lua):
@@ -95,7 +95,7 @@ def test_load_config_subprocess_error(config_manager):
             stderr='Some error output'
         )
         
-        with pytest.raises(ConfigLoadError):
+        with pytest.raises(ConfigLoadException):
             config_manager.load(SAMPLE_CONFIG_PATH)
 
 def test_load_config_parse_error(config_manager):
@@ -106,7 +106,7 @@ def test_load_config_parse_error(config_manager):
         mock_process.returncode = 0
         mock_run.return_value = mock_process
         
-        with pytest.raises(ConfigParseError):
+        with pytest.raises(ConfigParseException):
             config_manager.load(SAMPLE_CONFIG_PATH)
 
 def test_create_config_from_scratch(config_manager):
@@ -158,11 +158,11 @@ def test_get_parameter(config_manager, sample_lua):
         assert config_manager['map_builder.use_trajectory_builder_2d'] is True
         
         # Test getting non-existent parameter
-        with pytest.raises(InvalidParameterError):
+        with pytest.raises(InvalidParameterException):
             config_manager.get('non_existent_key')
         
         # Test getting parameter with invalid path
-        with pytest.raises(InvalidParameterError):
+        with pytest.raises(InvalidParameterException):
             config_manager.get('map_builder.use_trajectory_builder_2d.invalid')
 
 def test_set_parameter(config_manager, sample_lua):
@@ -199,7 +199,7 @@ def test_set_parameter(config_manager, sample_lua):
         assert config_manager.get('map_builder.use_trajectory_builder_3d') is True
         
         # Test setting parameter with invalid path
-        with pytest.raises(InvalidParameterError):
+        with pytest.raises(InvalidParameterException):
             config_manager.set('map_builder.use_trajectory_builder_2d.invalid', 'value')
 
 def test_to_lua_string(config_manager, sample_lua):
@@ -269,7 +269,7 @@ def test_save_to_file_error(config_manager, sample_lua):
         m.side_effect = IOError("Failed to write file")
         
         with patch('builtins.open', m):
-            with pytest.raises(ConfigFileError):
+            with pytest.raises(ConfigFileException):
                 config_manager.save_to_file(output_path)
 
 def test_deep_nested_parameters(config_manager):

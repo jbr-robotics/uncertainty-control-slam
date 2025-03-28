@@ -53,7 +53,5 @@ class BaseRosTool(BaseTool):
     def get_launch_configuration(self, param_name: str) -> LaunchConfiguration:
         if param_name not in self.parameters:
             raise ExternalToolParameterException(f"Parameter '{param_name}' not registered")
-        if not self.parameters[param_name].launch_arg:
-            raise ExternalToolParameterException(f"Parameter '{param_name}' is not a launch argument")
         return LaunchConfiguration(param_name)
 

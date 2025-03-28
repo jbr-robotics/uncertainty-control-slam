@@ -36,6 +36,7 @@ pgm-corner-count = "cartographer_tuner.cli.pgm_corner_count:main"
 pgm-enclosed-areas = "cartographer_tuner.cli.pgm_enclosed_areas:main"
 pgm-occupied-proportion = "cartographer_tuner.cli.pgm_occupied_proportion:main"
 lua-to-pgm = "cartographer_tuner.cli.lua_to_pgm:main"
+lua-pgm-metrics = "cartographer_tuner.cli.lua_pgm_metrics:main"
 
 [tool.cibuildwheel]
 test-command = ["pytest {package}/tests -v"]
