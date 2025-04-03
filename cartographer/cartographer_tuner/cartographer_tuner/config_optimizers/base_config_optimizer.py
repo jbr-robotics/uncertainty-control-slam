@@ -3,6 +3,7 @@ from typing import List
 
 from cartographer_tuner.utils.terminal_runnable import TerminalRunnable
 
+__all__ = ["BaseOptimizer"]
 
 class BaseOptimizer(TerminalRunnable):
     """Abstract base class for all optimizers."""

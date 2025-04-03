@@ -20,4 +20,5 @@ docker run -it \
     --device=/dev/dri:/dev/dri \
     --rm \
     --name cartographer \
+    --publish=8501:8501 \
     cartographer

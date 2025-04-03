@@ -14,6 +14,8 @@ from cartographer_tuner.utils.csv_stats_writer import CsvStatsWriter
 from cartographer_tuner.core.cartographer_config_manager import CartographerConfigManager
 from cartographer_tuner.metrics.metric import Metric
 
+__all__ = ["GridSearchConfigOptimizer"]
+
 class GridSearchConfigOptimizer(BaseOptimizer):
 
     CALCULATORS = [

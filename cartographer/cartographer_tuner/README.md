@@ -70,7 +70,7 @@ One can optimize their configuration using metrics described above and one of av
         --bag_filename=/data/bags/2011-01-28-06-37-23 \
         --config_dir=/opt/ros/humble/share/cartographer_ros/configuration_files \
         --config_basename=mit_stata.lua \
-        --grid '{"map_builder.pose_graph.constraint_builder.ceres_scan_matcher_3d.translation_weight": [0.1, 1, 10, 100], "map_builder.pose_graph.constraint_builder.ceres_scan_matcher_3d.rotation_weight": [0.1, 1, 10, 100]}' \
+        --grid '{"map_builder.pose_graph.constraint_builder.ceres_scan_matcher.translation_weight": [0.1, 1, 10, 100], "map_builder.pose_graph.constraint_builder.ceres_scan_matcher.rotation_weight": [0.1, 1, 10, 100]}' \
         --metrics corner_count,enclosed_areas_count,occupied_proportion \
         --output=/data/ceres_weights_metrics.csv
     ```
