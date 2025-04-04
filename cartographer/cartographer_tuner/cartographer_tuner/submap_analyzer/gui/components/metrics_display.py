@@ -32,33 +32,24 @@ class MetricsDisplayComponent:
         st.markdown("## Submap Metrics")
         
         col_intensity, col_alpha = st.columns(2)
-        # tab_intensity, tab_alpha = st.tabs(["Intensity Metrics", "Alpha Metrics"])
+
+        def plot_metric(metrics: dict):
+            for metric_name, metric_values in metrics.items():
+                st.subheader(metric_name)
+                fig, ax = plt.subplots()
+                versions = list(range(version_count))
+                ax.plot(versions, metric_values, label=metric_name)
+                ax.set_xlabel('Version')
+                ax.set_ylabel('Value')
+                ax.legend()
+                ax.grid(True)
+                st.pyplot(fig)
         
         with col_intensity:
             st.markdown("### Intensity Channel Metrics")
-            
-            for metric_name, metric_values in SubmapAnalyzerState.get_intensity_metrics().items():
-                st.subheader(metric_name)
-                fig, ax = plt.subplots()
-                versions = list(range(version_count))
-                ax.plot(versions, metric_values, label=metric_name)
-                ax.set_xlabel('Version')
-                ax.set_ylabel('Value')
-                ax.legend()
-                ax.grid(True)
-                st.pyplot(fig)
+            plot_metric(SubmapAnalyzerState.get_intensity_metrics())
         
         with col_alpha:
             st.markdown("### Alpha Channel Metrics")
-            
-            for metric_name, metric_values in SubmapAnalyzerState.get_alpha_metrics().items():
-                st.subheader(metric_name)
-                fig, ax = plt.subplots()
-                versions = list(range(version_count))
-                ax.plot(versions, metric_values, label=metric_name)
-                ax.set_xlabel('Version')
-                ax.set_ylabel('Value')
-                ax.legend()
-                ax.grid(True)
-                st.pyplot(fig)
+            plot_metric(SubmapAnalyzerState.get_alpha_metrics())
                     

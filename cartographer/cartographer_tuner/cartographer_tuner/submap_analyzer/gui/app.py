@@ -6,7 +6,7 @@ from typing import Optional
 
 from cartographer_tuner.submap_analyzer.submap_storage import SubmapStorage
 from cartographer_tuner.submap_analyzer.gui.state import SubmapAnalyzerState
-from cartographer_tuner.submap_analyzer.gui.components import SubmapListComponent, ControlPanelComponent, VersionSliderComponent, MetricsDisplayComponent
+from cartographer_tuner.submap_analyzer.gui.components import SubmapListComponent, ControlPanelComponent, VersionSliderComponent, MetricsDisplayComponent, SubmapsSummaryComponent
 from cartographer_tuner.submap_analyzer.gui.visualizer import display_bitmap
 
 class SubmapAnalyzerApp:
@@ -18,15 +18,29 @@ class SubmapAnalyzerApp:
         self.control_panel = ControlPanelComponent(storage)
         self.version_slider = VersionSliderComponent()
         self.metrics_display = MetricsDisplayComponent()
+        self.submaps_summary = SubmapsSummaryComponent(storage)
     def run(self):
         SubmapAnalyzerState.initialize()
         
+
         st.title("Cartographer Submap Analyzer")
-        self.control_panel.render()
-        st.sidebar.markdown("---")
-        self.submap_list.render()
-        self._render_main_content()
+        tab_summary, tab_individual = st.tabs(["Summary", "Individual"])
+
+        with tab_summary:
+            self._render_summary()
+
+        with tab_individual:
+            self._render_individual()
+
+    def _render_summary(self):
+        self.submaps_summary.render()
     
+    def _render_individual(self):
+            self.control_panel.render()
+            st.sidebar.markdown("---")
+            self.submap_list.render()
+            self._render_main_content()
+
     def _render_main_content(self):
         slider_result = self.version_slider.render()
         if not slider_result:
