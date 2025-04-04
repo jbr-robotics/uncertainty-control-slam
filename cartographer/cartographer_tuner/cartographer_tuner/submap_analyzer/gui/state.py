@@ -3,6 +3,7 @@
 import streamlit as st
 from typing import Dict, Tuple, Optional, List
 import numpy as np
+from dataclasses import dataclass
 
 class SubmapAnalyzerState:
     """
@@ -20,6 +21,9 @@ class SubmapAnalyzerState:
             st.session_state.version_count = 0       # Number of versions available for the current submap
             st.session_state.data_outdated = True    # Whether the data needs refreshing
             st.session_state.initialized = True
+            st.session_state.current_submap_history = []
+            st.session_state.intensity_metrics = {}
+            st.session_state.alpha_metrics = {}
     
     @staticmethod
     def select_submap(trajectory_id: int, submap_index: int):
@@ -91,3 +95,34 @@ class SubmapAnalyzerState:
     def is_data_outdated() -> bool:
         """Check if the data needs refreshing"""
         return st.session_state.data_outdated 
+    
+    @staticmethod
+    def get_current_submap_history() -> List[Tuple[np.ndarray, np.ndarray]]:
+        """Get the current submap history"""
+        return st.session_state.current_submap_history
+    
+    
+    @staticmethod
+    def set_current_submap_history(history: List[Tuple[np.ndarray, np.ndarray]]):
+        """Set the current submap history"""
+        st.session_state.current_submap_history = history
+
+    @staticmethod
+    def get_intensity_metrics() -> Dict[str, Dict[str, float]]:
+        """Get the intensity metrics for the current submap"""
+        return st.session_state.intensity_metrics
+    
+    @staticmethod
+    def get_alpha_metrics() -> Dict[str, Dict[str, float]]:
+        """Get the alpha metrics for the current submap"""
+        return st.session_state.alpha_metrics
+    
+    @staticmethod
+    def set_intensity_metrics(metrics: Dict[str, Dict[str, float]]):
+        """Set the intensity metrics for the current submap"""
+        st.session_state.intensity_metrics = metrics
+    
+    @staticmethod
+    def set_alpha_metrics(metrics: Dict[str, Dict[str, float]]):
+        """Set the alpha metrics for the current submap"""
+        st.session_state.alpha_metrics = metrics

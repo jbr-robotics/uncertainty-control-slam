@@ -18,7 +18,7 @@ if __name__ == "__main__":
     st.set_page_config(
         page_title="Cartographer Submap Analyzer",
         page_icon="🗺️",
-        layout="wide",
+        layout="centered",
         initial_sidebar_state="expanded"
     )
     

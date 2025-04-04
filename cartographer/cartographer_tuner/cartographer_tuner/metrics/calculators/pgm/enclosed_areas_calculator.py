@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from cartographer_tuner.metrics.metric import Metric
 from cartographer_tuner.metrics.calculators.pgm.base_pgm_metric_calculator import BasePgmMetricCalculator
@@ -14,8 +14,7 @@ class EnclosedAreasCalculator(BasePgmMetricCalculator):
 
     def __init__(
         self,
-        map_path: str,
-        yaml_path: Optional[str] = None,
+        map_data: Union[str, np.ndarray],
         undefined_value: int = 205,
         free_value: int = 0,
         occupied_value: int = 255,
@@ -25,7 +24,7 @@ class EnclosedAreasCalculator(BasePgmMetricCalculator):
         debug: bool = False,
         **kwargs,
     ):
-        super().__init__(map_path, yaml_path)
+        super().__init__(map_data)
         self.undefined_value = undefined_value
         self.free_value = free_value
         self.occupied_value = occupied_value

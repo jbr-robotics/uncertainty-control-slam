@@ -4,95 +4,66 @@ import threading
 import time
 from typing import Optional
 
-from ..submap_storage import SubmapStorage
-from .state import SubmapAnalyzerState
-from .components import SubmapListComponent, ControlPanelComponent, VersionSliderComponent
-from .visualizer import display_submap
+from cartographer_tuner.submap_analyzer.submap_storage import SubmapStorage
+from cartographer_tuner.submap_analyzer.gui.state import SubmapAnalyzerState
+from cartographer_tuner.submap_analyzer.gui.components import SubmapListComponent, ControlPanelComponent, VersionSliderComponent, MetricsDisplayComponent
+from cartographer_tuner.submap_analyzer.gui.visualizer import display_bitmap
 
 class SubmapAnalyzerApp:
-    """Main Streamlit application for the Submap Analyzer GUI"""
     
     def __init__(self, storage: SubmapStorage):
         self.storage = storage
         
-        # Don't set page config here, it should be done once before creating the app
-        # to avoid "StreamlitAPIException: set_page_config() can only be called once per app"
-        
-        # Initialize components
         self.submap_list = SubmapListComponent(storage)
         self.control_panel = ControlPanelComponent(storage)
-        self.version_slider = VersionSliderComponent(storage)
-    
+        self.version_slider = VersionSliderComponent()
+        self.metrics_display = MetricsDisplayComponent()
     def run(self):
-        """Run the Streamlit application"""
-        # Initialize the state
         SubmapAnalyzerState.initialize()
         
-        # App title
         st.title("Cartographer Submap Analyzer")
-        
-        # Render sidebar components
         self.control_panel.render()
         st.sidebar.markdown("---")
         self.submap_list.render()
-        
-        # Render main content
         self._render_main_content()
     
     def _render_main_content(self):
-        """Render the main content area"""
-        # Render version slider which returns the selected version and history
         slider_result = self.version_slider.render()
         if not slider_result:
             return
-        
+        # Add a checkbox for normalization control
+        normalize_images = st.checkbox(
+            "Normalize Images", 
+            value=True, 
+            help="When checked, images will be normalized to improve visibility"
+        )
+        col1, col2 = st.columns(2)
+
         version_index, submap_history = slider_result
         
-        # Get the selected submap data for the chosen version
         selected_submap = SubmapAnalyzerState.get_selected_submap()
         if not selected_submap:
             return
         
-        # Ensure the version index is valid
         if 0 <= version_index < len(submap_history):
             submap_data = submap_history[version_index]
-            
-            # Display the submap
+            intencity = submap_data[0]
+            alpha = submap_data[1]
             trajectory_id, submap_index = selected_submap
-            title = f"Submap ({trajectory_id}, {submap_index}) - Version {version_index}"
-            display_submap(submap_data, title)
-            
-            # Space for future metrics
-            st.markdown("---")
-            st.markdown("## Metrics")
-            st.info("Metrics visualization will be implemented in future updates.")
-            
-            # Add placeholder for future features
-            with st.expander("Future Features"):
-                st.write("""
-                - Time series plots of submap metrics
-                - Comparison between submap versions
-                - Uncertainty visualization
-                - Export functionality
-                """)
+
+            for col, (title, data) in zip([col1, col2], [("Intensity", intencity), ("Alpha", alpha)]):
+                with col:
+                    title = f"{title} ({trajectory_id}, {submap_index}) - Version {version_index}"
+                    display_bitmap(data, title, normalize=normalize_images)
+        
+        self.metrics_display.render()
+
 
 def run_streamlit_app(storage: SubmapStorage):
-    """
-    Function to run the Streamlit app with the given SubmapStorage.
-    This is the main entry point for the GUI.
-    
-    Args:
-        storage: A SubmapStorage instance containing the submap data
-    """
+    assert storage is not None, "No submap storage provided. Cannot display submaps."
     try:
-        # Handle case where storage might be None
-        if storage is None:
-            st.error("No submap storage provided. Cannot display submaps.")
-            return
-            
-        # Create and run the app
         app = SubmapAnalyzerApp(storage)
         app.run()
     except Exception as e:
         st.error(f"Error running the app: {e}")
-        st.exception(e)  # This will show a detailed traceback in the Streamlit UI 
+        st.exception(e)

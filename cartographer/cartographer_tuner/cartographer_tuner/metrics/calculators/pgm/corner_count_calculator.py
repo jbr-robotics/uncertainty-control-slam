@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 from cartographer_tuner.metrics.calculators.pgm.base_pgm_metric_calculator import BasePgmMetricCalculator
 from cartographer_tuner.metrics.metric import Metric
@@ -11,8 +11,7 @@ class CornerCountCalculator(BasePgmMetricCalculator):
     
     def __init__(
         self,
-        map_path: str,
-        yaml_path: Optional[str] = None,
+        map_data: Union[str, np.ndarray],
         block_size: int = 2,
         ksize: int = 3,
         k: float = 0.04,
@@ -41,7 +40,7 @@ class CornerCountCalculator(BasePgmMetricCalculator):
             max_corners: Maximum number of corners to detect
             debug: Whether to show intermediate images during processing
         """
-        super().__init__(map_path, yaml_path)
+        super().__init__(map_data)
         
         self.filter_size = filter_size
         self.sigma = sigma

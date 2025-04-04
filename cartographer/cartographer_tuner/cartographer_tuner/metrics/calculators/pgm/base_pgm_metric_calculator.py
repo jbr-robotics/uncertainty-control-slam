@@ -18,30 +18,20 @@ class BasePgmMetricCalculator(BaseMetricCalculator):
     """Abstract base class for metrics that evaluate PGM map files.
     """
     
-    def __init__(
-        self, 
-        map_path: Union[str, Path], 
-        yaml_path: Optional[Union[str, Path]] = None
-    ):
-        """Initialize base PGM metric calculator.
-        
-        Args:
-            map_path: Path to the PGM map file
-            yaml_path: Optional path to the corresponding YAML metadata file
-            
-        Raises:
-            CalculatorFileNotFoundException: If file doesn't exist or isn't a PGM file
-            CalculatorFileFormatException: If YAML metadata file is specified but doesn't exist
+    def __init__(self, map_data: Union[str, np.ndarray]):
         """
-        self.map_path = Path(map_path)
-        self._verify_map_path(self.map_path)
-        self.map_data = self._load_map(self.map_path)
+        Initialize with either a file path to a PGM map or a numpy array.
+        """
+        if isinstance(map_data, str):
+            self.map_path = Path(map_data)
+            self._verify_map_path(self.map_path)
+            self.map_data = self._load_map(self.map_path)
+        elif isinstance(map_data, np.ndarray):
+            self.map_data = map_data
+        else:
+            raise ValueError("map_data must be a file path or a numpy array")
         
         self.metadata = None
-        if yaml_path:
-            self.yaml_path = Path(yaml_path)
-            self._verify_yaml_path(self.yaml_path)
-            self.metadata = self._load_yaml_metadata(self.yaml_path)
     
     @staticmethod
     def _invert_map(map_data: np.ndarray) -> np.ndarray:

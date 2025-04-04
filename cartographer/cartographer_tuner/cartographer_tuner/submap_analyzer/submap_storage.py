@@ -38,12 +38,12 @@ class SubmapStorage:
             self._latest_submap_list = submap_list
     
     def _on_submap_data_update(self, trajectory_id: int, submap_index: int, 
-                               occupancy_grid: np.ndarray) -> None:
+                               data: np.ndarray) -> None:
         submap_key = (trajectory_id, submap_index)
         
         with self._history_lock:
             # Store in history
-            self._submap_history[submap_key].append(occupancy_grid)
+            self._submap_history[submap_key].append(data)
     
     def get_latest_submap_list(self) -> Optional[SubmapList]:
         with self._submap_list_lock:

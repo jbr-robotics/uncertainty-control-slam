@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 
@@ -14,12 +14,11 @@ class OccupiedProportionCalculator(BasePgmMetricCalculator):
 
     def __init__(
         self,
-        map_path: str,
-        yaml_path: Optional[str] = None,
+        map_data: Union[str, np.ndarray],
         debug: bool = False,
         **kwargs,
     ):
-        super().__init__(map_path, yaml_path)
+        super().__init__(map_data)
         self.debug = debug
 
     def calculate(self, metrics: Optional[List[str]] = None) -> Dict[str, Metric]:
