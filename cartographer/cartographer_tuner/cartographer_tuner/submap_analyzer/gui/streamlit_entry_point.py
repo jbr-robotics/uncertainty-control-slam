@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+import os
+# Disable telemetry and launch in headless mode
+os.environ["STREAMLIT_HEADLESS"] = "true"
+os.environ["STREAMLIT_BROWSER_GATHER_USAGE_STATS"] = "false"
+
 import streamlit as st
 import sys
 import os
@@ -11,6 +16,8 @@ if parent_dir not in sys.path:
 
 from cartographer_tuner.submap_analyzer.gui.ros_handler import RosHandler
 from cartographer_tuner.submap_analyzer.gui.app import run_streamlit_app
+
+
 
 # Main entry point when run directly by Streamlit
 if __name__ == "__main__":

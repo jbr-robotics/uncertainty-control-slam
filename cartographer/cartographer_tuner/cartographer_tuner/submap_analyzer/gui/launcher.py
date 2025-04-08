@@ -71,7 +71,7 @@ def launch_gui():
                 
             # Launch streamlit
             print(f"Launching Streamlit with {entry_point}")
-            subprocess.run(["streamlit", "run", entry_point])
+            subprocess.run(["streamlit", "run", entry_point, '--server.headless', 'true'])
     except Exception as e:
         print(f"Error running Streamlit app: {e}")
     finally:
