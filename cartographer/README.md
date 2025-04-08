@@ -58,7 +58,7 @@ python3 -m quality_estimator.parameter_optimizer \
     --points2_topic=/kitti/velo/pointcloud \
     --imu_topic=/kitti/oxts/imu \
     --skip_seconds=0 \
-    --parameter_grid '{"map_builder.pose_graph.constraint_builder.ceres_scan_matcher_3d.translation_weight": [0.01, 0.1, 1, 10, 100], "map_builder.pose_graph.constraint_builder.ceres_scan_matcher_3d.rotation_weight": [0.01, 0.1, 1, 10, 100]}' \
+    --parameter_grid '{"map_builder.pose_graph.constraint_builder.ceres_scan_matcher_2d.translation_weight": [0.01, 0.1, 1, 10, 100], "map_builder.pose_graph.constraint_builder.ceres_scan_matcher_2d.rotation_weight": [0.01, 0.1, 1, 10, 100]}' \
     --csv_output=/data/kitti_ceres_weights.csv \
     | tee /data/find_kitti_ceres_weights.log
 ```

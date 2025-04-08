@@ -60,9 +60,15 @@ RUN echo "source /root/ros2_ws/install/setup.bash" >> ~/.bashrc
 # Set environment variable to ensure Qt applications like Gazebo can run
 ENV QT_X11_NO_MITSHM=1
 
+# Install cartographer_tuner
+COPY ./cartographer_tuner /root/cartographer_tuner
+WORKDIR /root/cartographer_tuner
+RUN pip3 install -e .
+
+WORKDIR /root
+
 COPY ./launch/* /opt/ros/humble/share/cartographer_ros/launch/
 COPY ./configuration_files/* /opt/ros/humble/share/cartographer_ros/configuration_files/
-COPY ./quality_estimator /root/quality_estimator
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
 WORKDIR /root

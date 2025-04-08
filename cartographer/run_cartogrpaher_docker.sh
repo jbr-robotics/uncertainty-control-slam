@@ -16,8 +16,9 @@ docker run -it \
     --volume="${PWD}/data:/data" \
     --volume="${PWD}/configuration_files:${CARTOGRAPHER_PREFIX}/configuration_files" \
     --volume="${PWD}/launch:${CARTOGRAPHER_PREFIX}/launch" \
-    --volume="${PWD}/quality_estimator:/root/quality_estimator" \
+    --volume="${PWD}/cartographer_tuner:/root/cartographer_tuner" \
     --device=/dev/dri:/dev/dri \
     --rm \
     --name cartographer \
+    --publish=8501:8501 \
     cartographer
