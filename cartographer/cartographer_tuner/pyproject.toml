@@ -40,6 +40,7 @@ lua-to-pgm = "cartographer_tuner.cli.lua_to_pgm:main"
 lua-pgm-metrics = "cartographer_tuner.cli.lua_pgm_metrics:main"
 config-grid-search = "cartographer_tuner.cli.config_grid_search:main"
 submap-analyzer = "cartographer_tuner.cli.submap_analyzer_gui:main"
+first-submap-cartographer = "cartographer_tuner.cli.first_submap_cartographer:main"
 
 [tool.cibuildwheel]
 test-command = ["pytest {package}/tests -v"]

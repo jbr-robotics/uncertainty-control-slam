@@ -5,19 +5,18 @@ import time
 from queue import Queue, Empty
 from cartographer_ros_msgs.msg import SubmapList
 from cartographer_ros_msgs.srv import SubmapQuery
-from typing import Callable, Dict, List, Set, Tuple
+from typing import Callable, Dict, List, Set, Tuple, Optional
 
-from .submap_utils import extract_occupancy_grid, get_submap_resolution
+from cartographer_tuner.submap_analyzer.submap import Submap
 
-
-class SubmapSubscriber:
+class SubmapSubscriberNode(Node):
     def __init__(
         self,
         list_update_callback: Callable[[SubmapList], None],
-        submap_update_callback: Callable[[int, int, np.ndarray], None],
+        submap_update_callback: Callable[[int, int, Submap], None],
     ):
-        self._node = rclpy.create_node('submap_subscriber_single_thread')
-        self._logger = self._node.get_logger()
+        super().__init__('submap_subscriber')
+        self._logger = self.get_logger()
 
         self._on_list_update = list_update_callback
         self._on_submap_data = submap_update_callback
@@ -28,7 +27,7 @@ class SubmapSubscriber:
         self._running = True
         self._last_queried_submap = None
 
-        self._ros_submap_subscriber = self._node.create_subscription(
+        self._ros_submap_subscriber = self.create_subscription(
             SubmapList,
             "/submap_list",
             self._handle_submap_list,
@@ -36,14 +35,51 @@ class SubmapSubscriber:
         )
 
         self._logger.info("Waiting for /submap_query service...")
-        self._ros_query_client = self._node.create_client(SubmapQuery, "/submap_query")
+        self._ros_query_client = self.create_client(SubmapQuery, "/submap_query")
 
         while not self._ros_query_client.wait_for_service(timeout_sec=10.0) and self._running:
             self._logger.info("Waiting for /submap_query service...")
             if not rclpy.ok():
                 break
 
-        self._logger.info("SubmapSubscriber initialized")
+        self._logger.debug("SubmapSubscriber initialized")
+
+    def query_submap(self, trajectory_id: int, submap_index: int) -> Optional[Submap]:
+        self._logger.debug(f"Querying submap ({trajectory_id}, {submap_index})")
+        
+        request = SubmapQuery.Request()
+        request.trajectory_id = trajectory_id
+        request.submap_index = submap_index
+
+        try:
+            future = self._ros_query_client.call_async(request)
+            
+            start_time = time.time()
+            while not future.done() and (time.time() - start_time) < 5.0:
+                rclpy.spin_once(self, timeout_sec=0.1)
+                time.sleep(0.01)
+                
+            if not future.done():
+                self._logger.warn(f"Timeout waiting for submap query response")
+                return None
+                
+            response = future.result()
+        except Exception as e:
+            self._logger.warn(f"Error calling service for query: {e}")
+            return None
+
+        try:
+            submap = Submap.from_SubmapQuery(response)
+        except Exception as e:
+            self._logger.warn(f"Could not create Submap object for ({trajectory_id}, {submap_index}): {e}")
+            return None
+
+        if self._on_submap_data:
+            self._on_submap_data(trajectory_id, submap_index, submap)
+            
+        self._logger.debug(f"Processed submap ({trajectory_id}, {submap_index})")
+        
+        return submap
 
     def process_events(self, timeout_sec=0.1):
         """
@@ -53,7 +89,8 @@ class SubmapSubscriber:
         if not self._running or not rclpy.ok():
             return
 
-        rclpy.spin_once(self._node, timeout_sec=timeout_sec)
+        # Process ROS callbacks
+        rclpy.spin_once(self, timeout_sec=timeout_sec)
 
         # Process one submap query per call
         try:
@@ -87,7 +124,7 @@ class SubmapSubscriber:
                 self._last_queried_submap = new_submap
                 self._query_queue.put(new_submap)
             elif self._last_queried_submap:
-                self._logger.info(f"No new submaps, re-querying last known submap ({self._last_queried_submap[0]}, {self._last_queried_submap[1]})")
+                self._logger.debug(f"No new submaps, re-querying last known submap ({self._last_queried_submap[0]}, {self._last_queried_submap[1]})")
                 self._query_queue.put(self._last_queried_submap)
 
             self._previous_submaps = current_submaps
@@ -103,53 +140,18 @@ class SubmapSubscriber:
 
     def _process_submap(self, submap_key: Tuple[int, int]) -> None:
         trajectory_id, submap_index = submap_key
-        self._logger.info(f"Querying submap ({trajectory_id}, {submap_index})")
-
-        request = SubmapQuery.Request()
-        request.trajectory_id = trajectory_id
-        request.submap_index = submap_index
-
-        for attempt in range(3):
-            try:
-                future = self._ros_query_client.call_async(request)
-
-                start_time = time.time()
-                while not future.done() and (time.time() - start_time) < 5.0:
-                    rclpy.spin_once(self._node, timeout_sec=0.1)
-                    time.sleep(0.01)
-
-                if not future.done():
-                    self._logger.warn(f"Timeout waiting for submap query response, attempt {attempt+1}")
-                    continue
-
-                response = future.result()
-                break
-            except Exception as e:
-                self._logger.warn(f"Error calling service, attempt {attempt+1}: {e}")
-                time.sleep(0.5)
-        else:
-            self._logger.error(f"Failed to query submap after 3 attempts")
-            return
-
-        occupancy_grid = extract_occupancy_grid(response)
-        if occupancy_grid is None:
-            self._logger.warn(f"Could not extract grid for submap ({trajectory_id}, {submap_index})")
-            return
-
-        if self._on_submap_data:
-            self._on_submap_data(trajectory_id, submap_index, occupancy_grid)
-            self._logger.info(f"Processed submap ({trajectory_id}, {submap_index})")
+        self._logger.debug(f"Processing submap ({trajectory_id}, {submap_index})")
+        self.query_submap(trajectory_id, submap_index)
 
     def shutdown(self) -> None:
+        """Clean up resources."""
         self._running = False
 
         if hasattr(self, '_ros_submap_subscriber'):
-            self._node.destroy_subscription(self._ros_submap_subscriber)
+            self.destroy_subscription(self._ros_submap_subscriber)
 
         if hasattr(self, '_ros_query_client'):
-            self._node.destroy_client(self._ros_query_client)
+            self.destroy_client(self._ros_query_client)
 
-        if hasattr(self, '_node'):
-            self._node.destroy_node()
-
-        self._logger.info("SubmapSubscriber shutdown complete")
+        self._logger.debug("SubmapSubscriber shutdown complete")
+ 
