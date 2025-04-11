@@ -1,10 +1,17 @@
 import streamlit as st
 from pathlib import Path
+import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
+import cv2
+
 from cartographer_tuner.submap_analyzer.gui.state import SubmapAnalyzerState
 from cartographer_tuner.submap_analyzer.submap import Submap
-from cartographer_tuner.submap_analyzer.gui.visualizer import display_bitmap
-from cartographer_tuner.metrics.calculators.pgm import CornerCountCalculator, EnclosedAreasCalculator, OccupiedProportionCalculator
-import cv2
+from cartographer_tuner.metrics.calculators.pgm import (
+    CornerCountCalculator,
+    EnclosedAreasCalculator,
+    OccupiedProportionCalculator
+)
 
 class IndividualSubmapAnalyzer:
     def __init__(self):
@@ -37,24 +44,41 @@ class IndividualSubmapAnalyzer:
         with col3:
             self.analyze_layer("Map", submap.map)
 
-    def analyze_layer(self, name: str, data):
+    def analyze_layer(self, name: str, data: np.ndarray):
         st.markdown(f"**{name}**")
-        display_bitmap(data, name, normalize=True, inverse=False)
+        self.display_plotly_image(data, title=f"{name} Bitmap")
 
         # --- Corner Count ---
         corner_calc = CornerCountCalculator(map_data=data, debug=False)
         corner_metrics = corner_calc.calculate()
         st.write(f"Corner count: {corner_metrics['corner_count'].value}")
-        st.image(cv2.cvtColor(corner_calc.debug_image(), cv2.COLOR_BGR2RGB), caption="Corners", channels="RGB")
+        self.display_debug_image(corner_calc.debug_image(), "Corners")
 
         # --- Enclosed Areas ---
         enclosed_calc = EnclosedAreasCalculator(map_data=data, debug=False)
         enclosed_metrics = enclosed_calc.calculate()
         st.write(f"Enclosed areas: {enclosed_metrics['enclosed_areas_count'].value}")
-        st.image(cv2.cvtColor(enclosed_calc.debug_image(), cv2.COLOR_BGR2RGB), caption="Enclosed Areas", channels="RGB")
+        self.display_debug_image(enclosed_calc.debug_image(), "Enclosed Areas")
 
         # --- Occupied Proportion ---
         occupied_calc = OccupiedProportionCalculator(map_data=data, debug=False)
         occupied_metrics = occupied_calc.calculate()
         st.write(f"Occupied proportion: {occupied_metrics['occupied_proportion'].value:.3f}")
-        st.image(cv2.cvtColor(occupied_calc.debug_image(), cv2.COLOR_BGR2RGB), caption="Occupied", channels="RGB")
+        self.display_debug_image(occupied_calc.debug_image(), "Occupied")
+
+    def display_plotly_image(self, image: np.ndarray, title=""):
+        # Normalize image for better contrast if needed
+        norm_img = image.astype(np.float32)
+        norm_img -= norm_img.min()
+        if norm_img.max() > 0:
+            norm_img /= norm_img.max()
+
+        fig = px.imshow(norm_img, color_continuous_scale="gray", origin="lower")
+        fig.update_layout(title=title, coloraxis_showscale=False, margin=dict(l=0, r=0, t=30, b=0))
+        st.plotly_chart(fig, use_container_width=True)
+
+    def display_debug_image(self, img_bgr: np.ndarray, title: str):
+        img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+        fig = px.imshow(img_rgb, title=title, origin="lower")
+        fig.update_layout(margin=dict(l=0, r=0, t=30, b=0))
+        st.plotly_chart(fig, use_container_width=True)

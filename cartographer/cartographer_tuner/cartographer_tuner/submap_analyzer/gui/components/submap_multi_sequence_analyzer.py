@@ -1,8 +1,10 @@
 import re
 import numpy as np
-import matplotlib.pyplot as plt
+import pandas as pd
 from pathlib import Path
 import streamlit as st
+import plotly.express as px
+import plotly.graph_objects as go
 
 from cartographer_tuner.submap_analyzer.submap import Submap
 from cartographer_tuner.submap_analyzer.gui.state import SubmapAnalyzerState
@@ -39,10 +41,7 @@ def get_metric_values(seq_dir, map_type, metric_type):
             st.warning(f"Failed to process {f.name} in {seq_dir.name}: {e}")
     return values
 
-class SubmapMultiSequenceAnalyzer():
-
-    def __init__(self):
-        pass
+class SubmapMultiSequenceAnalyzer:
 
     def render(self):
         st.markdown("## Multi-Sequence Metric Summary")
@@ -75,33 +74,34 @@ class SubmapMultiSequenceAnalyzer():
             st.warning("No valid metrics found.")
             return
 
-        # Bar chart
+        # Bar chart (Plotly)
         st.markdown(f"### {stat_type.capitalize()} of `{metric_type}` per sequence")
-        fig, ax = plt.subplots()
-        ax.bar(sequence_names, sequence_stats)
-        ax.set_title(f"{metric_type.replace('_', ' ').capitalize()} ({stat_type}) per Sequence")
-        ax.set_ylabel(f"{stat_type.capitalize()} {metric_type.replace('_', ' ')}")
-        ax.set_xlabel("Sequence")
-        plt.xticks(rotation=45)
-        st.pyplot(fig)
+        df_bar = pd.DataFrame({"Sequence": sequence_names, "Value": sequence_stats})
+        fig_bar = px.bar(df_bar, x="Sequence", y="Value",
+                         title=f"{metric_type.replace('_', ' ').capitalize()} ({stat_type}) per Sequence",
+                         labels={"Value": f"{stat_type.capitalize()} {metric_type.replace('_', ' ')}"})
+        st.plotly_chart(fig_bar, use_container_width=True)
 
         # Boxplot of per-sequence stats
         st.markdown(f"### Distribution of {stat_type} across sequences (Boxplot)")
-        fig_stat_box, ax_stat_box = plt.subplots()
-        ax_stat_box.boxplot(sequence_stats, vert=False, showmeans=True)
-        ax_stat_box.set_xlabel(f"{stat_type.capitalize()} {metric_type.replace('_', ' ')}")
-        ax_stat_box.set_yticks([1])
-        ax_stat_box.set_yticklabels([""])
-        st.pyplot(fig_stat_box)
+        fig_stat_box = go.Figure()
+        fig_stat_box.add_trace(go.Box(x=sequence_stats, boxmean=True, orientation='h'))
+        fig_stat_box.update_layout(
+            xaxis_title=f"{stat_type.capitalize()} {metric_type.replace('_', ' ')}",
+            title=f"Boxplot of {stat_type} across sequences"
+        )
+        st.plotly_chart(fig_stat_box, use_container_width=True)
 
         # Boxplot of per-submap metric values by sequence
         st.markdown(f"### Boxplot of per-submap `{metric_type}` values by sequence")
-        fig_box, ax_box = plt.subplots()
-        ax_box.boxplot(all_values, labels=sequence_names, showmeans=True)
-        ax_box.set_ylabel(metric_type.replace('_', ' ').capitalize())
-        ax_box.set_title(f"{metric_type.replace('_', ' ').capitalize()} per Sequence")
-        plt.xticks(rotation=45)
-        st.pyplot(fig_box)
+        fig_box = go.Figure()
+        for values, name in zip(all_values, sequence_names):
+            fig_box.add_trace(go.Box(y=values, name=name, boxmean=True))
+        fig_box.update_layout(
+            yaxis_title=metric_type.replace('_', ' ').capitalize(),
+            title=f"{metric_type.replace('_', ' ').capitalize()} per Sequence"
+        )
+        st.plotly_chart(fig_box, use_container_width=True)
 
         # --- Metric Comparison Section ---
         st.markdown("---")
@@ -137,7 +137,6 @@ class SubmapMultiSequenceAnalyzer():
         if stat1_values and stat2_values:
             stat1_array = np.array(stat1_values)
             stat2_array = np.array(stat2_values)
-
             bin_edges = np.histogram_bin_edges(stat1_array, bins=bins)
 
             bin_values_grouped = []
@@ -156,13 +155,15 @@ class SubmapMultiSequenceAnalyzer():
                 st.markdown(
                     f"### Boxplot: `{stat_type_2} {metric_type_2}` in bins of `{stat_type_1} {metric_type_1}`"
                 )
-                fig_box_cmp, ax_box_cmp = plt.subplots()
-                ax_box_cmp.boxplot(bin_values_grouped, labels=binned_labels, showmeans=True)
-                ax_box_cmp.set_ylabel(f"{stat_type_2} {metric_type_2}")
-                ax_box_cmp.set_xlabel(f"{stat_type_1} {metric_type_1} bins")
-                ax_box_cmp.set_title(f"{stat_type_2.capitalize()} {metric_type_2} vs. {stat_type_1.capitalize()} {metric_type_1}")
-                plt.xticks(rotation=45)
-                st.pyplot(fig_box_cmp)
+                fig_cmp_box = go.Figure()
+                for label, values in zip(binned_labels, bin_values_grouped):
+                    fig_cmp_box.add_trace(go.Box(y=values, name=label, boxmean=True))
+                fig_cmp_box.update_layout(
+                    yaxis_title=f"{stat_type_2} {metric_type_2}",
+                    xaxis_title=f"{stat_type_1} {metric_type_1} bins",
+                    title=f"{stat_type_2.capitalize()} {metric_type_2} vs. {stat_type_1.capitalize()} {metric_type_1}"
+                )
+                st.plotly_chart(fig_cmp_box, use_container_width=True)
             else:
                 st.warning("No data available in any bin for boxplot comparison.")
         else:
