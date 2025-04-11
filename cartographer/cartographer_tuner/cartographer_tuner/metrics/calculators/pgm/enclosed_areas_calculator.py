@@ -95,4 +95,36 @@ class EnclosedAreasCalculator(BasePgmMetricCalculator):
                 value=best_enclosed,
             )
         return results
+    
+    def debug_image(self):
+        if self._enclosed_contours is None:
+            self.calculate()
+
+        if len(self.map_data.shape) == 2:
+            rgb_image = cv2.cvtColor(self.map_data, cv2.COLOR_GRAY2BGR)
+        else:
+            rgb_image = self.map_data.copy()
+
+        output_img = rgb_image.copy()
+
+        red = (0, 0, 255)
+        alpha = 0.4
+
+        occupied_mask = (self.map_data == self.occupied_value)
+        red_overlay = np.full_like(output_img, red)
+        output_img = np.where(occupied_mask[..., None],
+                            (alpha * red_overlay + (1 - alpha) * output_img).astype(np.uint8),
+                            output_img)
+
+        if self._enclosed_contours:
+            mask = np.zeros(self.map_data.shape, dtype=np.uint8)
+            cv2.drawContours(mask, self._enclosed_contours, -1, 255, thickness=cv2.FILLED)
+
+            output_img = np.where(mask[..., None] == 255,
+                                (alpha * red_overlay + (1 - alpha) * output_img).astype(np.uint8),
+                                output_img)
+
+        return output_img
+
+
 

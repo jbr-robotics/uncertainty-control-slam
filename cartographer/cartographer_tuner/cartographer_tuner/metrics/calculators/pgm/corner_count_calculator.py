@@ -110,3 +110,17 @@ class CornerCountCalculator(BasePgmMetricCalculator):
             self._corners = []
         
         return self._corners
+
+    def debug_image(self):
+        if self._corners is None:
+            self._corners = self._detect_corners(self.map_data)
+
+        if len(self.map_data.shape) == 2:
+            debug_img = cv2.cvtColor(self.map_data, cv2.COLOR_GRAY2BGR)
+        else:
+            debug_img = self.map_data.copy()
+
+        for y, x in self._corners:
+            cv2.circle(debug_img, (x, y), radius=2, color=(0, 0, 255), thickness=-1)
+
+        return debug_img

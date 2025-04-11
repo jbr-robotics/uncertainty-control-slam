@@ -10,13 +10,18 @@ from cartographer_tuner.metrics.calculators.exceptions import (
     CalculatorFileNotFoundException,
     CalculatorFileFormatException
 )
+from abc import ABC, abstractmethod
 
 
 __all__ = ["BasePgmMetricCalculator"]
 
-class BasePgmMetricCalculator(BaseMetricCalculator):
+class BasePgmMetricCalculator(BaseMetricCalculator, ABC):
     """Abstract base class for metrics that evaluate PGM map files.
     """
+
+    @abstractmethod
+    def debug_image(self) -> np.ndarray:
+        raise NotImplementedError()
     
     def __init__(self, map_data: Union[str, np.ndarray]):
         """

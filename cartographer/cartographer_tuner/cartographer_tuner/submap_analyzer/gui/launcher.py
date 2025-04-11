@@ -9,7 +9,6 @@ import streamlit as st
 import subprocess
 import atexit
 
-from .ros_handler import RosHandler
 from .app import run_streamlit_app
 
 def is_streamlit_installed():
@@ -38,26 +37,10 @@ def launch_gui():
     is_streamlit_context = 'STREAMLIT_RUNTIME' in os.environ
     is_main_thread = threading.current_thread() is threading.main_thread()
     
-    # Use the singleton instance of RosHandler
-    ros_handler = RosHandler.get_instance()
-    ros_handler.start()
-    
-    # Register cleanup at exit to ensure ROS is properly shutdown
-    atexit.register(lambda: ros_handler.stop())
-    
-    # Only set up signal handlers if we're in the main thread
-    if is_main_thread:
-        def signal_handler(sig, frame):
-            print("Shutting down...")
-            ros_handler.stop()
-            sys.exit(0)
-        
-        signal.signal(signal.SIGINT, signal_handler)
-    
     try:
         if is_streamlit_context:
             # If we're already in a Streamlit context, just run the app
-            run_streamlit_app(ros_handler.storage)
+            run_streamlit_app()
         else:
             # If we're not in a Streamlit context, launch Streamlit as a subprocess
             script_path = os.path.abspath(__file__)
@@ -74,17 +57,7 @@ def launch_gui():
             subprocess.run(["streamlit", "run", entry_point, '--server.headless', 'true'])
     except Exception as e:
         print(f"Error running Streamlit app: {e}")
-    finally:
-        # Ensure clean shutdown
-        ros_handler.stop()
-        # Only shutdown ROS if we're in the main process
-        if is_main_thread and not is_streamlit_context:
-            if hasattr(rclpy, 'ok') and rclpy.ok():
-                try:
-                    import rclpy
-                    rclpy.shutdown()
-                except Exception as e:
-                    print(f"Error shutting down ROS: {e}")
+
 
 if __name__ == "__main__":
     launch_gui() 

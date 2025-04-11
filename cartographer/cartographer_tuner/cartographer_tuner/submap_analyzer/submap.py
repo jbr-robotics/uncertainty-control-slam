@@ -70,7 +70,7 @@ class Submap:
     def map(self) -> np.ndarray:
         # TODO: This formula may be wrong, need to check
         background = 0.5
-        float_alpha = self._alpha.astype(np.float32) / 255.0
+        float_alpha = 1 - self._alpha.astype(np.float32) / 255.0
         float_intensity = self._intensity.astype(np.float32) / 255.0 
         result = background * (1.0 - float_intensity) + float_intensity * float_alpha
         return (result * 255.0).astype(np.uint8)

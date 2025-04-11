@@ -1,4 +1,3 @@
-import tempfile
 from pathlib import Path
 import threading
 import time
@@ -89,6 +88,10 @@ class FirstSubmapCartographerLauncher(TerminalRunnable):
             if not hasattr(submap_list, 'submap') or len(submap_list.submap) < 2:
                 return
             
+            if self._first_submap is None:
+                print("WARN: first submap is expected to be defined")
+                return
+
             self._first_submap_saved = True
             self._done = True
             self._first_submap.save(self._output_path)
@@ -190,8 +193,12 @@ class FirstSubmapCartographerLauncher(TerminalRunnable):
         try:
             rclpy.init()  
             self.launch_cartographer()
-            self.initialize_submap_subscriber()
             self.play_bag_file()
+
+            
+
+            self.initialize_submap_subscriber()
+            
             
             while not self._done:
                 self._submap_subscriber.process_events(timeout_sec=0.1)

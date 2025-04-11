@@ -34,13 +34,14 @@ class SubmapSubscriberNode(Node):
             10
         )
 
-        self._logger.info("Waiting for /submap_query service...")
         self._ros_query_client = self.create_client(SubmapQuery, "/submap_query")
 
-        while not self._ros_query_client.wait_for_service(timeout_sec=10.0) and self._running:
+        self._logger.info("Waiting for /submap_query service...")
+        while not self._ros_query_client.wait_for_service(timeout_sec=1.0) and self._running:
             self._logger.info("Waiting for /submap_query service...")
             if not rclpy.ok():
-                break
+                raise RuntimeError("Cannot find server")
+        
 
         self._logger.debug("SubmapSubscriber initialized")
 
@@ -120,7 +121,7 @@ class SubmapSubscriberNode(Node):
             if new_submaps:
                 if len(new_submaps) > 1:
                     self._logger.warn(f"Found {len(new_submaps)} new submaps in one update. Querying one.")
-                new_submap = list(new_submaps)[0]
+                new_submap = list(sorted(new_submaps))[0]
                 self._last_queried_submap = new_submap
                 self._query_queue.put(new_submap)
             elif self._last_queried_submap:

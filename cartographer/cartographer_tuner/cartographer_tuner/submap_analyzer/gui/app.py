@@ -3,34 +3,52 @@ import numpy as np
 import threading
 import time
 from typing import Optional
+from pathlib import Path
 
-from cartographer_tuner.submap_analyzer.submap_storage import SubmapStorage
 from cartographer_tuner.submap_analyzer.gui.state import SubmapAnalyzerState
-from cartographer_tuner.submap_analyzer.gui.components import SubmapListComponent, ControlPanelComponent, VersionSliderComponent, MetricsDisplayComponent, SubmapsSummaryComponent
 from cartographer_tuner.submap_analyzer.gui.visualizer import display_bitmap
+from cartographer_tuner.submap_analyzer.gui.components.individual_submap_analyzer import IndividualSubmapAnalyzer
+from cartographer_tuner.submap_analyzer.gui.components.submap_sequence_analyzer import SubmapSequenceAnalyzer
+from cartographer_tuner.submap_analyzer.gui.components.submap_multi_sequence_analyzer import SubmapMultiSequenceAnalyzer
 
 class SubmapAnalyzerApp:
     
-    def __init__(self, storage: SubmapStorage):
-        self.storage = storage
-        
-        self.submap_list = SubmapListComponent(storage)
-        self.control_panel = ControlPanelComponent(storage)
-        self.version_slider = VersionSliderComponent()
-        self.metrics_display = MetricsDisplayComponent()
-        self.submaps_summary = SubmapsSummaryComponent(storage)
+    def __init__(self):
+        self.individual_submap_analyzer = IndividualSubmapAnalyzer()
+        self.submap_sequence_analyzer = SubmapSequenceAnalyzer()
+        self.submap_multi_sequence_analyzer = SubmapMultiSequenceAnalyzer()
+
     def run(self):
         SubmapAnalyzerState.initialize()
-        
 
-        st.title("Cartographer Submap Analyzer")
-        tab_summary, tab_individual = st.tabs(["Summary", "Individual"])
+        self._submap_path = Path(st.text_input("Enter folder path"))
 
-        with tab_summary:
-            self._render_summary()
+        SubmapAnalyzerState.set_working_path(self._submap_path)
 
-        with tab_individual:
-            self._render_individual()
+        if self._submap_path is None or not self._submap_path:
+            st.error("No submap path selected. Please select a submap path from the sidebar.")
+        elif SubmapAnalyzerApp._is_individual_submap(self._submap_path):
+            self.individual_submap_analyzer.render()
+        elif SubmapAnalyzerApp._is_submap_sequence(self._submap_path):
+            self.submap_sequence_analyzer.render()
+        elif SubmapAnalyzerApp._is_sequence_of_sequences(self._submap_path):
+            self.submap_multi_sequence_analyzer.render()
+        elif not self._submap_path.is_dir():
+            st.error("Please select a valid folder path.")
+        else:
+            st.error("Something went wrong. Please try again.")
+
+    @staticmethod
+    def _is_individual_submap(submap_path: Path) -> bool:
+        return submap_path.suffix == ".pkl"
+
+    @staticmethod
+    def _is_submap_sequence(submap_path: Path) -> bool:
+        return submap_path.is_dir() and all(f.name.startswith("submap_") and f.name.endswith(".pkl") and f.is_file() for f in submap_path.iterdir())
+
+    @staticmethod
+    def _is_sequence_of_sequences(submap_path: Path) -> bool:
+        return submap_path.is_dir() and all(SubmapAnalyzerApp._is_submap_sequence(f) for f in submap_path.iterdir())
 
     def _render_summary(self):
         self.submaps_summary.render()
@@ -73,10 +91,9 @@ class SubmapAnalyzerApp:
         self.metrics_display.render()
 
 
-def run_streamlit_app(storage: SubmapStorage):
-    assert storage is not None, "No submap storage provided. Cannot display submaps."
+def run_streamlit_app():
     try:
-        app = SubmapAnalyzerApp(storage)
+        app = SubmapAnalyzerApp()
         app.run()
     except Exception as e:
         st.error(f"Error running the app: {e}")

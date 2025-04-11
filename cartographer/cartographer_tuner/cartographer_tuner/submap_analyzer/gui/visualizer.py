@@ -10,11 +10,15 @@ from typing import Tuple, Optional
 def create_bitmap_figure(
     bitmap: np.ndarray,
     title: str = "Bitmap Visualization",
-    normalize: bool = False
+    normalize: bool = False,
+    inverse: bool = True
 ) -> Figure:
     fig, ax = plt.subplots(figsize=(8, 8))
     fig.suptitle(title)
     
+    if inverse:
+        bitmap = 255 - bitmap
+
     if normalize:
         im = ax.imshow(bitmap, cmap='gray')
     else:
@@ -25,11 +29,14 @@ def create_bitmap_figure(
     fig.tight_layout()
     return fig
 
-def display_bitmap(data: np.ndarray, title: str = "Bitmap Visualization", normalize: bool = False):
+def display_bitmap(data: np.ndarray, 
+                   title: str = "Bitmap Visualization", 
+                   normalize: bool = False,
+                   inverse: bool = True):
     st.markdown(f"**Data Shape:** {data.shape}")
     
     try:
-        fig = create_bitmap_figure(data, title, normalize)
+        fig = create_bitmap_figure(data, title, normalize, inverse)
         st.pyplot(fig)
     except Exception as e:
         st.error(f"Error visualizing submap: {e}")
