@@ -21,4 +21,5 @@ docker run -it \
     --rm \
     --name cartographer \
     --publish=8501:8501 \
+    --shm-size=512m \
     cartographer

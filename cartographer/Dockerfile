@@ -60,6 +60,9 @@ RUN echo "source /root/ros2_ws/install/setup.bash" >> ~/.bashrc
 # Set environment variable to ensure Qt applications like Gazebo can run
 ENV QT_X11_NO_MITSHM=1
 
+# Disable SHM
+ENV RMW_FASTRTPS_USE_SHM=0
+
 # Install cartographer_tuner
 COPY ./cartographer_tuner /root/cartographer_tuner
 WORKDIR /root/cartographer_tuner
