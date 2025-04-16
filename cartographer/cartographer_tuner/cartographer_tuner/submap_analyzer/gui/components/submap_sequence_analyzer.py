@@ -84,7 +84,7 @@ class SubmapSequenceAnalyzer:
 
         # --- Metric Comparison Section ---
         st.markdown("---")
-        st.markdown("## Compare Two Metrics (Binned Boxplot)")
+        st.markdown("## Compare Two Metrics (Binned Boxplot + Histogram)")
 
         col1, col2 = st.columns(2)
         with col1:
@@ -118,6 +118,7 @@ class SubmapSequenceAnalyzer:
             m2 = np.array(m2_vals)
 
             bin_edges = np.histogram_bin_edges(m1, bins=bins)
+            bin_counts = np.zeros(len(bin_edges) - 1)
             binned_values = []
             binned_labels = []
 
@@ -126,21 +127,46 @@ class SubmapSequenceAnalyzer:
                     m1 < bin_edges[i] if i < len(bin_edges) - 1 else m1 <= bin_edges[i]
                 )
                 values_in_bin = m2[in_bin]
+                bin_counts[i-1] = np.sum(in_bin)
                 if values_in_bin.size > 0:
                     binned_values.append(values_in_bin)
                     binned_labels.append(f"[{bin_edges[i-1]:.2f} – {bin_edges[i]:.2f}]")
 
             if binned_values:
                 st.markdown(f"### Boxplot: `{metric_type_2}` in bins of `{metric_type_1}`")
-                fig_box = go.Figure()
+
+                fig = go.Figure()
+
+                # Gray histogram bars
+                fig.add_trace(go.Bar(
+                    x=binned_labels,
+                    y=bin_counts,
+                    marker=dict(color="lightgray"),
+                    opacity=0.4,
+                    yaxis="y2",
+                    name="Count"
+                ))
+
+                # Boxplot per bin
                 for label, values in zip(binned_labels, binned_values):
-                    fig_box.add_trace(go.Box(y=values, name=label, boxmean=True))
-                fig_box.update_layout(
-                    yaxis_title=metric_type_2.replace('_', ' ').capitalize(),
+                    fig.add_trace(go.Box(
+                        y=values,
+                        name=label,
+                        boxmean=True,
+                        marker_color='steelblue',
+                        line=dict(width=1)
+                    ))
+
+                fig.update_layout(
+                    title=f"{metric_type_2.replace('_', ' ').capitalize()} vs. {metric_type_1.replace('_', ' ').capitalize()}",
                     xaxis_title=f"{metric_type_1.replace('_', ' ').capitalize()} bins",
-                    title=f"{metric_type_2.replace('_', ' ').capitalize()} vs {metric_type_1.replace('_', ' ').capitalize()}"
+                    yaxis=dict(title=metric_type_2.replace('_', ' ').capitalize()),
+                    yaxis2=dict(overlaying="y", side="right", showgrid=False, visible=False),
+                    barmode="overlay",
+                    bargap=0.3
                 )
-                st.plotly_chart(fig_box, use_container_width=True)
+
+                st.plotly_chart(fig, use_container_width=True)
             else:
                 st.warning("No data available for boxplot comparison.")
         else:

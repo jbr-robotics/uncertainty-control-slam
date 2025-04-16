@@ -92,17 +92,44 @@ class SubmapMultiSequenceAnalyzer:
         )
         st.plotly_chart(fig_stat_box, use_container_width=True)
 
-        # Boxplot of per-submap metric values by sequence
+        # Boxplot of per-submap metric values by sequence with histogram background
         st.markdown(f"### Boxplot of per-submap `{metric_type}` values by sequence")
-        fig_box = go.Figure()
-        for values, name in zip(all_values, sequence_names):
-            fig_box.add_trace(go.Box(y=values, name=name, boxmean=True))
-        fig_box.update_layout(
-            yaxis_title=metric_type.replace('_', ' ').capitalize(),
-            title=f"{metric_type.replace('_', ' ').capitalize()} per Sequence"
-        )
-        st.plotly_chart(fig_box, use_container_width=True)
 
+        # Prepare histogram data (count of submaps per sequence)
+        submap_counts = [len(arr) for arr in all_values]
+
+        fig_box = go.Figure()
+
+        # Add histogram bars (background)
+        fig_box.add_trace(go.Bar(
+            x=sequence_names,
+            y=submap_counts,
+            marker=dict(color='lightgray'),
+            opacity=0.4,
+            yaxis='y2',
+            name='Submap Count'
+        ))
+
+        # Add boxplots on top
+        for name, values in zip(sequence_names, all_values):
+            fig_box.add_trace(go.Box(
+                y=values,
+                name=name,
+                boxmean=True,
+                marker_color='steelblue',
+                line=dict(width=1)
+            ))
+
+        # Dual Y-axes
+        fig_box.update_layout(
+            title=f"{metric_type.replace('_', ' ').capitalize()} per Sequence",
+            yaxis=dict(title=metric_type.replace('_', ' ').capitalize()),
+            yaxis2=dict(overlaying='y', side='right', showgrid=False, visible=False),
+            barmode="overlay"
+        )
+
+        st.plotly_chart(fig_box, use_container_width=True)
+        
         # --- Metric Comparison Section ---
         st.markdown("---")
         st.markdown("## Compare Two Metrics (per-sequence, binned boxplot)")
