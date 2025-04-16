@@ -1,16 +1,19 @@
 #!/bin/bash
 
+set -e
+
 if [ $# -eq 0 ]; then
     echo "Usage: $0 <experiment_name>"
     exit 1
 fi
 
-PROJECT_ROOT="$(dirname "${PWD}")"
+PROJECT_ROOT="$(dirname "$(dirname "$(realpath "$0")")")"
 EXPERIMENT_NAME=$1
-EXPERIMENT_DIR="${PROJECT_ROOT}/experiments/${EXPERIMENT_NAME}"
 DATE_TIME=$(date "+%Y-%m-%d_%H-%M-%S")
+EXPERIMENT_DIR="${PROJECT_ROOT}/experiments/${DATE_TIME}_${EXPERIMENT_NAME}"
 EXPERIMENT_ID="${DATE_TIME}_${EXPERIMENT_NAME}"
-FULL_EXPERIMENT_DIR="${EXPERIMENT_DIR}/${EXPERIMENT_ID}"
+
+mkdir -p "${EXPERIMENT_DIR}"
 
 if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
     echo "ERROR: This script must be run inside a Git repository."
@@ -25,15 +28,13 @@ if [[ -n $(git status -s) ]]; then
     exit 1
 fi
 
-mkdir -p "${FULL_EXPERIMENT_DIR}/"{config,data,results,src,logs}
-
 # Get Git information
 GIT_COMMIT=$(git rev-parse HEAD)
 GIT_REPO_URL=$(git config --get remote.origin.url)
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 # Save Git info to metadata
-cat > "${FULL_EXPERIMENT_DIR}/metadata.json" << EOF
+cat > "${EXPERIMENT_DIR}/metadata.json" << EOF
 {
     "experiment_id": "${EXPERIMENT_ID}",
     "created_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
@@ -46,31 +47,25 @@ cat > "${FULL_EXPERIMENT_DIR}/metadata.json" << EOF
 EOF
 
 # System information
-cat > "${FULL_EXPERIMENT_DIR}/system_info.txt" << EOF
+cat > "${EXPERIMENT_DIR}/system_info.txt" << EOF
 Date: $(date)
 Hostname: $(hostname)
 OS: $(uname -a)
 EOF
 
 # Create a runner script template
-cat > "${FULL_EXPERIMENT_DIR}/run_experiment.sh" << EOF
+cat > "${EXPERIMENT_DIR}/run_experiment.sh" << EOF
 #!/bin/bash
 
 # This script must be run inside docker container. 
+# It contains the sequence of commands that must be executed to run the experiment.
 
-# Run experiment script for ${EXPERIMENT_ID}
-echo "Running experiment: ${EXPERIMENT_ID}"
-
-
-# Run the experiment
-
-echo "Experiment completed"
 EOF
 
-chmod +x "${FULL_EXPERIMENT_DIR}/run_experiment.sh"
+chmod +x "${EXPERIMENT_DIR}/run_experiment.sh"
 
 # Create a README template
-cat > "${FULL_EXPERIMENT_DIR}/README.md" << EOF
+cat > "${EXPERIMENT_DIR}/README.md" << EOF
 # Experiment: ${EXPERIMENT_NAME}
 
 COMMIT: ${GIT_COMMIT}
@@ -81,4 +76,4 @@ COMMIT: ${GIT_COMMIT}
 
 EOF
 
-echo "Experiment template created at: ${FULL_EXPERIMENT_DIR}"
+echo "Experiment template created at: ${EXPERIMENT_DIR}"
