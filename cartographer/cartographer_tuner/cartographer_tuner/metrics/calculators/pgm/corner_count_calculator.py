@@ -15,7 +15,7 @@ class CornerCountCalculator(BasePgmMetricCalculator):
         block_size: int = 2,
         ksize: int = 3,
         k: float = 0.04,
-        threshold: float = 0.01,
+        threshold: float = 0.05,
         min_distance: int = 10,
         filter_size: int = 5,
         sigma: float = 1.0,
