@@ -99,7 +99,7 @@ class CornerCountCalculator(BasePgmMetricCalculator):
             qualityLevel=self.threshold,
             minDistance=self.min_distance,
             blockSize=self.block_size,
-            useHarrisDetector=True,
+            useHarrisDetector=False,
             k=self.k
         )
         
