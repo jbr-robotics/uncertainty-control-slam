@@ -77,8 +77,7 @@ class IndividualSubmapAnalyzer:
         fig.update_layout(title=title, coloraxis_showscale=False, margin=dict(l=0, r=0, t=30, b=0))
         st.plotly_chart(fig, use_container_width=True)
 
-    def display_debug_image(self, img_bgr: np.ndarray, title: str):
-        img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+    def display_debug_image(self, img_rgb: np.ndarray, title: str):
         fig = px.imshow(img_rgb, title=title, origin="lower")
         fig.update_layout(margin=dict(l=0, r=0, t=30, b=0))
         st.plotly_chart(fig, use_container_width=True)
