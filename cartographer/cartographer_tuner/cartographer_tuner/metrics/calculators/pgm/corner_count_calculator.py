@@ -12,16 +12,8 @@ class CornerCountCalculator(BasePgmMetricCalculator):
     def __init__(
         self,
         map_data: Union[str, np.ndarray],
-        precision: int = 
-        block_size: int = 2,
-        ksize: int = 3,
-        k: float = 0.04,
-        threshold: float = 0.05,
+        precision: float = 0.01,
         min_distance: int = 10,
-        filter_size: int = 5,
-        sigma: float = 1.0,
-        min_blob_size: int = 5,
-        max_corners: int = 10000,
         debug: bool = False,
         **kwargs,
     ):
@@ -29,29 +21,15 @@ class CornerCountCalculator(BasePgmMetricCalculator):
         
         Args:
             map_path: Path to the PGM map file
-            yaml_path: Optional path to the corresponding YAML metadata file
-            block_size: Block size for Harris corner detection
-            ksize: Aperture parameter for Sobel operator in Harris corner detection
-            k: Harris detector free parameter
-            threshold: Threshold for corner detection (relative to max response)
+            precision: Precision for corner detection
             min_distance: Minimum distance between corners
-            filter_size: Size of the Gaussian-Laplace filter
-            sigma: Standard deviation for the Gaussian-Laplace filter
-            min_blob_size: Minimum size of blobs to keep after filtering
-            max_corners: Maximum number of corners to detect
             debug: Whether to show intermediate images during processing
         """
         super().__init__(map_data)
+
+        self._precision = precision
+        self._min_distance = min_distance
         
-        self.filter_size = filter_size
-        self.sigma = sigma
-        self.block_size = block_size
-        self.ksize = ksize
-        self.k = k
-        self.threshold = threshold
-        self.min_distance = min_distance
-        self.min_blob_size = min_blob_size
-        self.max_corners = max_corners
         self.debug = debug
         self._corners = None
 
@@ -79,7 +57,7 @@ class CornerCountCalculator(BasePgmMetricCalculator):
         filtered = []
         buckets = set()
         for coord in corners:
-            coord_bucket = (coord[0] // 10, coord[1] // 10) 
+            coord_bucket = (coord[0] // self._min_distance, coord[1] // self._min_distance) 
             if coord_bucket in buckets:
                 continue
             filtered.append(coord)
@@ -93,17 +71,14 @@ class CornerCountCalculator(BasePgmMetricCalculator):
                 cv2.THRESH_BINARY + cv2.THRESH_OTSU
             )
         
-        # Find contours from binary image
         contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        # Approximate contours to polygons + get bounding rects
         corners = []
         for cnt in contours:
-            epsilon = 0.01 * cv2.arcLength(cnt, True)  # Tweak this!
+            epsilon = self._precision * cv2.arcLength(cnt, True)
             approx = cv2.approxPolyDP(cnt, epsilon, True)
             corners.extend(approx)
 
-        # Corners to list of coordinates
         if corners is not None:
             corners = np.intp(corners).reshape(-1, 2)
             corners = [(pt[1], pt[0]) for pt in corners]
@@ -125,6 +100,6 @@ class CornerCountCalculator(BasePgmMetricCalculator):
             debug_img = self.map_data.copy()
 
         for y, x in self._corners:
-            cv2.circle(debug_img, (x, y), radius=2, color=(0, 0, 255), thickness=-1)
+            cv2.circle(debug_img, (x, y), radius=2, color=(255, 0, 0), thickness=-1)
 
         return debug_img
