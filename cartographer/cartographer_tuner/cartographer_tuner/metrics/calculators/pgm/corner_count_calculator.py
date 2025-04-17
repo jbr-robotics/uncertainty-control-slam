@@ -12,6 +12,7 @@ class CornerCountCalculator(BasePgmMetricCalculator):
     def __init__(
         self,
         map_data: Union[str, np.ndarray],
+        precision: int = 
         block_size: int = 2,
         ksize: int = 3,
         k: float = 0.04,
@@ -74,41 +75,44 @@ class CornerCountCalculator(BasePgmMetricCalculator):
     def corners(self) -> Optional[List[Tuple[int, int]]]:
         return self._corners
     
-    def _apply_gaussian_laplace(self, map_data: np.ndarray) -> np.ndarray:
-        blurred = cv2.GaussianBlur(
-            map_data, 
-            (self.filter_size, self.filter_size), 
-            self.sigma
-        )
-        if self.debug:
-            show_image(blurred, "Blurred map")
-        laplacian = cv2.Laplacian(blurred, cv2.CV_64F)
-        return laplacian
-    
+    def _filter_close_corners(self, corners):
+        filtered = []
+        buckets = set()
+        for coord in corners:
+            coord_bucket = (coord[0] // 10, coord[1] // 10) 
+            if coord_bucket in buckets:
+                continue
+            filtered.append(coord)
+            buckets.add(coord_bucket)
+        return filtered
+
     def _detect_corners(self, map_data: np.ndarray) -> List[Tuple[int, int]]:
-        if self.debug:
-            show_image(map_data, "Original map")
+        _, binary = cv2.threshold(
+                map_data,
+                0, 255,
+                cv2.THRESH_BINARY + cv2.THRESH_OTSU
+            )
         
-        processed_map = self._apply_gaussian_laplace(map_data)
-        if self.debug:
-            show_image(processed_map, "Gaussian-Laplace filtered map")
-        
-        corners = cv2.goodFeaturesToTrack(
-            processed_map.astype(np.float32),
-            maxCorners=self.max_corners,
-            qualityLevel=self.threshold,
-            minDistance=self.min_distance,
-            blockSize=self.block_size,
-            useHarrisDetector=False,
-            k=self.k
-        )
-        
+        # Find contours from binary image
+        contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        # Approximate contours to polygons + get bounding rects
+        corners = []
+        for cnt in contours:
+            epsilon = 0.01 * cv2.arcLength(cnt, True)  # Tweak this!
+            approx = cv2.approxPolyDP(cnt, epsilon, True)
+            corners.extend(approx)
+
+        # Corners to list of coordinates
         if corners is not None:
             corners = np.intp(corners).reshape(-1, 2)
-            self._corners = [(pt[1], pt[0]) for pt in corners]
+            corners = [(pt[1], pt[0]) for pt in corners]
         else:
-            self._corners = []
+            corners = []
         
+        filtered = self._filter_close_corners(corners)
+        self._corners = filtered
+
         return self._corners
 
     def debug_image(self):
