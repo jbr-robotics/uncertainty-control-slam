@@ -73,33 +73,6 @@ class EnclosedAreasCalculator(BasePgmMetricCalculator):
         if self.debug:
             show_image(self.draw_contours(binary_map, enclosed_contrours), "Contours detected")
         self._enclosed_contours = enclosed_contrours
-        # best_contours = []
-
-        # unknown_mask = self._get_unknown_mask()
-        # if self.debug:
-        #     show_image(unknown_mask, "Mask of unknown areas")
-
-        # min_value = np.min(self.map_data)
-        # max_value = np.max(self.map_data)
-
-        # for unknow_value in range(min_value, max_value):
-        #     candidate_map = self.map_data.copy()
-        #     candidate_map[unknown_mask] = unknow_value
-        #     if self.debug:
-        #         show_image(candidate_map, f"Candidate map with unknown_value={unknow_value}")
-
-        #     binary_map = self._otsu_threshold(candidate_map)
-        #     if self.debug:
-        #         show_image(binary_map, f"Binary map with unknow_value={unknow_value}")
-
-        #     contours = self._find_enclosed_areas(binary_map)
-        #     if self.debug:
-        #         show_image(self.draw_contours(binary_map, contours), "Contours detected")
-        #     if len(contours) > len(best_contours):
-        #         best_contours = contours
-
-        # self._contours = best_contours
-
 
     def calculate(self, metrics: Optional[List[str]] = None) -> Dict[str, Metric]:
         metrics = self._process_metric_names(metrics)
