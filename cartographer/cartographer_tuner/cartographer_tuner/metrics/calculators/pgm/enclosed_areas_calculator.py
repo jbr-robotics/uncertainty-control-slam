@@ -15,116 +15,119 @@ class EnclosedAreasCalculator(BasePgmMetricCalculator):
     def __init__(
         self,
         map_data: Union[str, np.ndarray],
-        undefined_value: int = 205,
-        free_value: int = 0,
-        occupied_value: int = 255,
-        candidate_start: int = 255,
-        candidate_end: int = 200,
-        candidate_step: int = 5,
+        min_area_percentage: int = 0.01,
         debug: bool = False,
         **kwargs,
     ):
         super().__init__(map_data)
-        self.undefined_value = undefined_value
-        self.free_value = free_value
-        self.occupied_value = occupied_value
-        self.candidate_start = candidate_start
-        self.candidate_end = candidate_end
-        self.candidate_step = candidate_step
         self.debug = debug
-
+        self._min_area_percentage = min_area_percentage
         self._enclosed_count = None
         self._enclosed_contours = None
 
     @property
     def enclosed_contours(self) -> Optional[List[np.ndarray]]:
         return self._enclosed_contours
+    
+    def _get_unknown_mask(self):
+        intensities = self.map_data.reshape(-1, 1).astype(np.float32) / 255.0
+        criteria = (cv2.TERM_CRITERIA_EPS, None, 10)
+        attempts = 10
+        _, labels, centers = cv2.kmeans(intensities, 3, None, criteria, attempts, cv2.KMEANS_RANDOM_CENTERS)
+        mid_idx = np.argsort(centers)[1]
+        unknown_mask = (labels.flatten() == mid_idx).reshape(self.map_data.shape)
+        return unknown_mask
+    
+    @staticmethod
+    def _otsu_threshold(image):
+        _, binary = cv2.threshold(
+                image,
+                0, 255,
+                cv2.THRESH_BINARY + cv2.THRESH_OTSU
+            )
+        return binary
+    
 
-    def _count_enclosed_free_areas(self, binary_image: np.ndarray) -> int:
-        inv = cv2.bitwise_not(binary_image)
-        num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(inv, connectivity=8)
-        enclosed = 0
-        h, w = binary_image.shape
+    def _find_enclosed_areas(self, image: np.ndarray):
+        contours, _ = cv2.findContours(image, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
 
-        for label in range(1, num_labels):
-            x, y, w_box, h_box, area = stats[label]
-            if x <= 0 or y <= 0 or (x + w_box) >= w or (y + h_box) >= h:
+        unoccupied_areas = []
+
+        for contour in contours:
+            x, y, w, h = cv2.boundingRect(contour)
+            bounding_area = w * h
+            
+            if bounding_area < image.size * self._min_area_percentage:
                 continue
-            enclosed += 1
-        return enclosed
+
+            unoccupied_areas.append(contour)
+
+        return unoccupied_areas
+    
+    def _calculate_contours(self):
+        binary_map = self._otsu_threshold(self.map_data)
+        if self.debug:
+            show_image(binary_map, f"Binary map with")
+
+        enclosed_contrours = self._find_enclosed_areas(binary_map)
+        if self.debug:
+            show_image(self.draw_contours(binary_map, enclosed_contrours), "Contours detected")
+        self._enclosed_contours = enclosed_contrours
+        # best_contours = []
+
+        # unknown_mask = self._get_unknown_mask()
+        # if self.debug:
+        #     show_image(unknown_mask, "Mask of unknown areas")
+
+        # min_value = np.min(self.map_data)
+        # max_value = np.max(self.map_data)
+
+        # for unknow_value in range(min_value, max_value):
+        #     candidate_map = self.map_data.copy()
+        #     candidate_map[unknown_mask] = unknow_value
+        #     if self.debug:
+        #         show_image(candidate_map, f"Candidate map with unknown_value={unknow_value}")
+
+        #     binary_map = self._otsu_threshold(candidate_map)
+        #     if self.debug:
+        #         show_image(binary_map, f"Binary map with unknow_value={unknow_value}")
+
+        #     contours = self._find_enclosed_areas(binary_map)
+        #     if self.debug:
+        #         show_image(self.draw_contours(binary_map, contours), "Contours detected")
+        #     if len(contours) > len(best_contours):
+        #         best_contours = contours
+
+        # self._contours = best_contours
+
 
     def calculate(self, metrics: Optional[List[str]] = None) -> Dict[str, Metric]:
         metrics = self._process_metric_names(metrics)
 
-        best_enclosed = 0
-
-        undefined_mask = (self.map_data == self.undefined_value)
-
-        for candidate in range(self.candidate_start, self.candidate_end - 1, -self.candidate_step):
-            candidate_map = self.map_data.copy()
-            candidate_map[undefined_mask] = candidate
-
-            if self.debug:
-                show_image(candidate_map, f"Candidate occupancy map (undefined set to {candidate})")
-
-            ret, binary = cv2.threshold(
-                candidate_map,
-                0, 255,
-                cv2.THRESH_BINARY + cv2.THRESH_OTSU
-            )
-            if self.debug:
-                show_image(binary, f"Binary image (Otsu threshold={ret:.2f})")
-
-            enclosed = self._count_enclosed_free_areas(binary)
-            if self.debug:
-                print(f"Candidate {candidate}: enclosed areas count = {enclosed}")
-
-            if enclosed > best_enclosed:
-                contours, hierarchy = cv2.findContours(
-                    binary, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE
-                )
-                self._enclosed_contours = contours
-                best_enclosed = enclosed
-
-        self._enclosed_count = best_enclosed
-
         results = {}
         if EnclosedAreasCalculator.ENLOSED_AREAS in metrics:
+            if self._enclosed_contours is None:
+                self._calculate_contours()
+
             results[EnclosedAreasCalculator.ENLOSED_AREAS] = Metric(
                 name=EnclosedAreasCalculator.ENLOSED_AREAS,
-                value=best_enclosed,
+                value=len(self._enclosed_contours),
             )
         return results
     
     def debug_image(self):
         if self._enclosed_contours is None:
-            self.calculate()
+            self._calculate_contours()
+        image = self.draw_contours(self.map_data, self._enclosed_contours)
+        return image    
 
-        if len(self.map_data.shape) == 2:
-            rgb_image = cv2.cvtColor(self.map_data, cv2.COLOR_GRAY2BGR)
-        else:
-            rgb_image = self.map_data.copy()
+    @staticmethod
+    def draw_contours(binary_image, contours):
+        rgb_image = cv2.cvtColor(binary_image, cv2.COLOR_GRAY2RGB)
+        colors = [(255, 0, 0), (0, 0, 255), (0, 255, 0), (255, 255, 0), (255, 0, 255), (0, 255, 255)]
 
-        output_img = rgb_image.copy()
+        for i, contour in enumerate(contours):
+            color = colors[i % len(colors)]
+            cv2.drawContours(rgb_image, [contour], 0, color, 2)
 
-        red = (0, 0, 255)
-        alpha = 0.4
-
-        occupied_mask = (self.map_data == self.occupied_value)
-        red_overlay = np.full_like(output_img, red)
-        output_img = np.where(occupied_mask[..., None],
-                            (alpha * red_overlay + (1 - alpha) * output_img).astype(np.uint8),
-                            output_img)
-
-        if self._enclosed_contours:
-            mask = np.zeros(self.map_data.shape, dtype=np.uint8)
-            cv2.drawContours(mask, self._enclosed_contours, -1, 255, thickness=cv2.FILLED)
-
-            output_img = np.where(mask[..., None] == 255,
-                                (alpha * red_overlay + (1 - alpha) * output_img).astype(np.uint8),
-                                output_img)
-
-        return output_img
-
-
-
+        return rgb_image
