@@ -25,3 +25,14 @@ Real corner count is 1, while algorithm detects 6
 ![](image.png)
 
 Corner count debug is needed. 
+
+
+## Additional comment 
+
+(from commit: 3123831f90b4394b3157b78c3d5d6b14558d9bb0)
+
+Boxplot shows that values 6 and 7 are pretty stable
+![](image-3.png)
+
+So, more robust experiment with increased number of samples and larger scope 
+
