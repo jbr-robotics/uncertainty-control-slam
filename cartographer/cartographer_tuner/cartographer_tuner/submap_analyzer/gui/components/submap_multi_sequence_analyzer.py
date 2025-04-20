@@ -56,6 +56,41 @@ class SubmapMultiSequenceAnalyzer:
             self.max_filter = st.number_input("Max value filter", value=1000.0, step=0.1)
         self.stat_type = st.selectbox("Statistic to compute per sequence", list(STAT_FUNCS))
 
+    def create_raw_metrics_dataframe(self, root_dir, map_type="intensity"):
+        data = []
+        sequence_dirs = sorted([d for d in root_dir.iterdir() if d.is_dir()])
+        
+        for seq_dir in sequence_dirs:
+            try:
+                param_value = int(seq_dir.name)
+            except ValueError:
+                param_value = None
+                
+            for f in sorted(seq_dir.glob("submap_*.pkl"), key=lambda f: int(re.search(r"submap_(\d+)", f.stem).group(1)) if re.search(r"submap_(\d+)", f.stem) else -1):
+                try:
+                    submap_id = int(re.search(r"submap_(\d+)", f.stem).group(1))
+                    submap = Submap.load(f)
+                    layer = getattr(submap, map_type)
+                    
+                    # Calculate corner count
+                    corner_calculator = METRIC_CALCULATORS["corner_count"](layer)
+                    corner_count = corner_calculator.calculate()["corner_count"].value
+                    
+                    # Calculate enclosed areas
+                    areas_calculator = METRIC_CALCULATORS["enclosed_areas_count"](layer)
+                    enclosed_areas = areas_calculator.calculate()["enclosed_areas_count"].value
+                    
+                    if not np.isnan(corner_count) and not np.isnan(enclosed_areas):
+                        data.append({
+                            "map_id": submap_id,
+                            "param_value": param_value,
+                            "corner_count": corner_count,
+                            "enclosed_areas": enclosed_areas
+                        })
+                except Exception as e:
+                    st.warning(f"Failed to process {f.name} in {seq_dir.name}: {e}")
+        
+        return pd.DataFrame(data)
 
     def render_single_metric_summary(self, root_dir):
         self.render_single_metric_summary_input()
@@ -145,70 +180,21 @@ class SubmapMultiSequenceAnalyzer:
             st.error("Working path must be a directory containing sequence folders.")
             return
         
-        self.render_single_metric_summary(root_dir)
+        # Option to show raw metrics data
+        if st.checkbox("Show raw metrics data"):
+            st.write("Creating raw metrics dataframe...")
+            map_type = st.selectbox("Map type for raw metrics", ["intensity", "map", "alpha"])
+            df_raw = self.create_raw_metrics_dataframe(root_dir, map_type=map_type)
+            st.dataframe(df_raw)
+            
+            # Option to download as CSV
+            if not df_raw.empty:
+                csv = df_raw.to_csv(index=False)
+                st.download_button(
+                    label="Download raw metrics as CSV",
+                    data=csv,
+                    file_name="submap_metrics_raw.csv",
+                    mime="text/csv",
+                )
         
-        # # --- Metric Comparison Section ---
-        # st.markdown("---")
-        # st.markdown("## Compare Two Metrics (per-sequence, binned boxplot)")
-
-        # col1, col2 = st.columns(2)
-        # with col1:
-        #     map_type_1 = st.selectbox("Map type 1", ["map", "alpha", "intensity"], key="map1")
-        #     metric_type_1 = st.selectbox("Metric 1", list(METRIC_CALCULATORS), key="metric1")
-        #     stat_type_1 = st.selectbox("Statistic 1", list(STAT_FUNCS), key="stat1")
-        # with col2:
-        #     map_type_2 = st.selectbox("Map type 2", ["map", "alpha", "intensity"], key="map2")
-        #     metric_type_2 = st.selectbox("Metric 2", list(METRIC_CALCULATORS), key="metric2")
-        #     stat_type_2 = st.selectbox("Statistic 2", list(STAT_FUNCS), key="stat2")
-
-        # bins = st.number_input("Number of bins", min_value=2, max_value=100, value=10)
-
-        # if (map_type_1 == map_type_2 and metric_type_1 == metric_type_2 and stat_type_1 == stat_type_2):
-        #     st.warning("Please choose two different combinations.")
-        #     return
-
-        # stat1_values, stat2_values = [], []
-
-        # for seq_dir in sequence_dirs:
-        #     v1 = get_metric_values(seq_dir, map_type_1, metric_type_1)
-        #     v2 = get_metric_values(seq_dir, map_type_2, metric_type_2)
-
-        #     if v1 and v2:
-        #         a1, a2 = np.array(v1), np.array(v2)
-        #         stat1_values.append(STAT_FUNCS[stat_type_1](a1))
-        #         stat2_values.append(STAT_FUNCS[stat_type_2](a2))
-
-        # if stat1_values and stat2_values:
-        #     stat1_array = np.array(stat1_values)
-        #     stat2_array = np.array(stat2_values)
-        #     bin_edges = np.histogram_bin_edges(stat1_array, bins=bins)
-
-        #     bin_values_grouped = []
-        #     binned_labels = []
-
-        #     for i in range(1, len(bin_edges)):
-        #         in_bin = (stat1_array >= bin_edges[i-1]) & (
-        #             stat1_array < bin_edges[i] if i < len(bin_edges) - 1 else stat1_array <= bin_edges[i]
-        #         )
-        #         values_in_bin = stat2_array[in_bin]
-        #         if values_in_bin.size > 0:
-        #             bin_values_grouped.append(values_in_bin)
-        #             binned_labels.append(f"[{bin_edges[i-1]:.2f} – {bin_edges[i]:.2f}]")
-
-        #     if bin_values_grouped:
-        #         st.markdown(
-        #             f"### Boxplot: `{stat_type_2} {metric_type_2}` in bins of `{stat_type_1} {metric_type_1}`"
-        #         )
-        #         fig_cmp_box = go.Figure()
-        #         for label, values in zip(binned_labels, bin_values_grouped):
-        #             fig_cmp_box.add_trace(go.Box(y=values, name=label, boxmean=True))
-        #         fig_cmp_box.update_layout(
-        #             yaxis_title=f"{stat_type_2} {metric_type_2}",
-        #             xaxis_title=f"{stat_type_1} {metric_type_1} bins",
-        #             title=f"{stat_type_2.capitalize()} {metric_type_2} vs. {stat_type_1.capitalize()} {metric_type_1}"
-        #         )
-        #         st.plotly_chart(fig_cmp_box, use_container_width=True)
-        #     else:
-        #         st.warning("No data available in any bin for boxplot comparison.")
-        # else:
-        #     st.warning("Not enough valid data for comparison.")
+        self.render_single_metric_summary(root_dir)
