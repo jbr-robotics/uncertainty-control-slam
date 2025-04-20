@@ -91,6 +91,80 @@ class SubmapMultiSequenceAnalyzer:
                     st.warning(f"Failed to process {f.name} in {seq_dir.name}: {e}")
         
         return pd.DataFrame(data)
+    
+    def render_heatmap(self, sequence_names, sequence_stats):
+        st.markdown(f"### Heatmap of `{self.metric_type}` ({self.stat_type})")
+        
+        # Extract x and y values from sequence names (format: "x_y")
+        x_values = []
+        y_values = []
+        
+        for name in sequence_names:
+            try:
+                x, y = map(float, name.split('_'))
+                x_values.append(x)
+                y_values.append(y)
+            except ValueError:
+                st.warning(f"Sequence name '{name}' doesn't follow the expected 'x_y' format")
+                return
+        
+        # Create a DataFrame for the heatmap
+        df_heatmap = pd.DataFrame({
+            "x": x_values,
+            "y": y_values,
+            "value": sequence_stats
+        })
+        
+        # Create a scatter plot instead of a heatmap to show all values explicitly
+        fig = px.scatter(
+            df_heatmap, 
+            x="x", 
+            y="y", 
+            color="value",
+            size="value",
+            size_max=25,
+            hover_data=["x", "y", "value"],
+            title=f"{self.metric_type.replace('_', ' ').capitalize()} ({self.stat_type})",
+            labels={"value": f"{self.stat_type.capitalize()} {self.metric_type.replace('_', ' ')}"}
+        )
+        
+        # Improve appearance
+        fig.update_layout(
+            xaxis_title="X Parameter",
+            yaxis_title="Y Parameter",
+            coloraxis_colorbar_title=f"{self.stat_type.capitalize()} Value"
+        )
+        
+        # Add text labels to show exact values
+        fig.update_traces(
+            textposition='top center',
+            texttemplate='%{z:.2f}',
+            marker=dict(line=dict(width=1, color='DarkSlateGrey'))
+        )
+        
+        # Add scale toggle options
+        scale_option = st.selectbox(
+            "Axis Scale",
+            ["Uniform", "Log X", "Log Y", "Log X and Y"],
+            key=f"scale_toggle_{self.metric_type}_{self.stat_type}"
+        )
+        
+        # Apply scale based on selection
+        if scale_option == "Log X" or scale_option == "Log X and Y":
+            fig.update_xaxes(type="log")
+        if scale_option == "Log Y" or scale_option == "Log X and Y":
+            fig.update_yaxes(type="log")
+        st.plotly_chart(fig, use_container_width=True)
+
+    def render_bars(self, sequence_names, sequence_stats):
+        st.markdown(f"### {self.stat_type.capitalize()} of `{self.metric_type}` per sequence")
+        df_bar = pd.DataFrame({"Sequence": sequence_names, "Value": sequence_stats})
+        fig_bar = px.bar(df_bar, x="Sequence", y="Value",
+                        title=f"{self.metric_type.replace('_', ' ').capitalize()} ({self.stat_type}) per Sequence",
+                        labels={"Value": f"{self.stat_type.capitalize()} {self.metric_type.replace('_', ' ')}"},
+                        range_y=get_range(df_bar["Value"].min(), df_bar["Value"].max()))
+
+        st.plotly_chart(fig_bar, use_container_width=True)
 
     def render_single_metric_summary(self, root_dir):
         self.render_single_metric_summary_input()
@@ -115,14 +189,10 @@ class SubmapMultiSequenceAnalyzer:
             st.warning("No valid metrics found.")
             return
 
-        st.markdown(f"### {self.stat_type.capitalize()} of `{self.metric_type}` per sequence")
-        df_bar = pd.DataFrame({"Sequence": sequence_names, "Value": sequence_stats})
-        fig_bar = px.bar(df_bar, x="Sequence", y="Value",
-                        title=f"{self.metric_type.replace('_', ' ').capitalize()} ({self.stat_type}) per Sequence",
-                        labels={"Value": f"{self.stat_type.capitalize()} {self.metric_type.replace('_', ' ')}"},
-                        range_y=get_range(df_bar["Value"].min(), df_bar["Value"].max()))
-
-        st.plotly_chart(fig_bar, use_container_width=True)
+        if all(map(lambda x: x.count('_') == 1, sequence_names)):
+            self.render_heatmap(sequence_names, sequence_stats)
+        else:
+            self.render_bars(sequence_names, sequence_stats)
 
         # Boxplot of per-sequence stats
         st.markdown(f"### Distribution of {self.stat_type} across sequences (Boxplot)")
