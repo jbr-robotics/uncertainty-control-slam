@@ -12,15 +12,8 @@ class CornerCountCalculator(BasePgmMetricCalculator):
     def __init__(
         self,
         map_data: Union[str, np.ndarray],
-        block_size: int = 2,
-        ksize: int = 3,
-        k: float = 0.04,
-        threshold: float = 0.05,
+        precision: float = 0.01,
         min_distance: int = 10,
-        filter_size: int = 5,
-        sigma: float = 1.0,
-        min_blob_size: int = 5,
-        max_corners: int = 10000,
         debug: bool = False,
         **kwargs,
     ):
@@ -28,29 +21,15 @@ class CornerCountCalculator(BasePgmMetricCalculator):
         
         Args:
             map_path: Path to the PGM map file
-            yaml_path: Optional path to the corresponding YAML metadata file
-            block_size: Block size for Harris corner detection
-            ksize: Aperture parameter for Sobel operator in Harris corner detection
-            k: Harris detector free parameter
-            threshold: Threshold for corner detection (relative to max response)
+            precision: Precision for corner detection
             min_distance: Minimum distance between corners
-            filter_size: Size of the Gaussian-Laplace filter
-            sigma: Standard deviation for the Gaussian-Laplace filter
-            min_blob_size: Minimum size of blobs to keep after filtering
-            max_corners: Maximum number of corners to detect
             debug: Whether to show intermediate images during processing
         """
         super().__init__(map_data)
+
+        self._precision = precision
+        self._min_distance = min_distance
         
-        self.filter_size = filter_size
-        self.sigma = sigma
-        self.block_size = block_size
-        self.ksize = ksize
-        self.k = k
-        self.threshold = threshold
-        self.min_distance = min_distance
-        self.min_blob_size = min_blob_size
-        self.max_corners = max_corners
         self.debug = debug
         self._corners = None
 
@@ -74,41 +53,43 @@ class CornerCountCalculator(BasePgmMetricCalculator):
     def corners(self) -> Optional[List[Tuple[int, int]]]:
         return self._corners
     
-    def _apply_gaussian_laplace(self, map_data: np.ndarray) -> np.ndarray:
-        blurred = cv2.GaussianBlur(
-            map_data, 
-            (self.filter_size, self.filter_size), 
-            self.sigma
-        )
-        if self.debug:
-            show_image(blurred, "Blurred map")
-        laplacian = cv2.Laplacian(blurred, cv2.CV_64F)
-        return laplacian
-    
+    def _filter_close_corners(self, corners):
+        filtered = []
+        buckets = set()
+        for coord in corners:
+            coord_bucket = (coord[0] // self._min_distance, coord[1] // self._min_distance) 
+            if coord_bucket in buckets:
+                continue
+            filtered.append(coord)
+            buckets.add(coord_bucket)
+        return filtered
+
     def _detect_corners(self, map_data: np.ndarray) -> List[Tuple[int, int]]:
-        if self.debug:
-            show_image(map_data, "Original map")
+        _, binary = cv2.threshold(
+                map_data,
+                0, 255,
+                cv2.THRESH_BINARY + cv2.THRESH_OTSU
+            )
         
-        processed_map = self._apply_gaussian_laplace(map_data)
-        if self.debug:
-            show_image(processed_map, "Gaussian-Laplace filtered map")
-        
-        corners = cv2.goodFeaturesToTrack(
-            processed_map.astype(np.float32),
-            maxCorners=self.max_corners,
-            qualityLevel=self.threshold,
-            minDistance=self.min_distance,
-            blockSize=self.block_size,
-            useHarrisDetector=False,
-            k=self.k
-        )
-        
+        contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        corners = []
+        for cnt in contours:
+            epsilon = self._precision * cv2.arcLength(cnt, True)
+            approx = cv2.approxPolyDP(cnt, epsilon, True)
+            if len(approx) <= 1:
+                continue # Skip discrete dots 
+            corners.extend(approx)
+
         if corners is not None:
             corners = np.intp(corners).reshape(-1, 2)
-            self._corners = [(pt[1], pt[0]) for pt in corners]
+            corners = [(pt[1], pt[0]) for pt in corners]
         else:
-            self._corners = []
+            corners = []
         
+        filtered = self._filter_close_corners(corners)
+        self._corners = filtered
+
         return self._corners
 
     def debug_image(self):
@@ -121,6 +102,6 @@ class CornerCountCalculator(BasePgmMetricCalculator):
             debug_img = self.map_data.copy()
 
         for y, x in self._corners:
-            cv2.circle(debug_img, (x, y), radius=2, color=(0, 0, 255), thickness=-1)
+            cv2.circle(debug_img, (x, y), radius=2, color=(255, 0, 0), thickness=-1)
 
         return debug_img

@@ -1,0 +1,9 @@
+{
+    "experiment_id": "2025-04-20_19-23-54_corner_count_check",
+    "created_at": "2025-04-20T16:23:54Z",
+    "git": {
+        "commit": "eabc337722630b891d73cbe570e844e5efc5c6f6",
+        "repository": "git@github.com:jbr-robotics/uncertainty-control-slam.git",
+        "branch": "main"
+    }
+}
