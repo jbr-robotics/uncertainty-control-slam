@@ -91,12 +91,13 @@ class EnclosedAreasCalculator(BasePgmMetricCalculator):
     def debug_image(self):
         if self._enclosed_contours is None:
             self._calculate_contours()
-        image = self.draw_contours(self.map_data, self._enclosed_contours)
-        return image    
+        debug_img = cv2.normalize(self.map_data, None, alpha=0, beta=255 // 2, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+        debug_img = self.draw_contours(debug_img, self._enclosed_contours)
+        return debug_img    
 
     @staticmethod
-    def draw_contours(binary_image, contours):
-        rgb_image = cv2.cvtColor(binary_image, cv2.COLOR_GRAY2RGB)
+    def draw_contours(img, contours):
+        rgb_image = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
         colors = [(255, 0, 0), (0, 0, 255), (0, 255, 0), (255, 255, 0), (255, 0, 255), (0, 255, 255)]
 
         for i, contour in enumerate(contours):
