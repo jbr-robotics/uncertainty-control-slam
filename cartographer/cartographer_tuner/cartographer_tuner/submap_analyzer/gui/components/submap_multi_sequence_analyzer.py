@@ -41,11 +41,15 @@ def get_metric_values(seq_dir, map_type, metric_type):
             st.warning(f"Failed to process {f.name} in {seq_dir.name}: {e}")
     return values
 
+def get_range(min, max):
+    padding = (max - min) * 0.05
+    return [min - padding, max + padding]
+
 class SubmapMultiSequenceAnalyzer:
     def render_single_metric_summary_input(self):
         col1, col2 = st.columns(2)
         with col1:
-            self.map_type = st.selectbox("Map type", ["map", "alpha", "intensity"])
+            self.map_type = st.selectbox("Map type", ["intensity", "map", "alpha"])
             self.min_filter = st.number_input("Min value filter", value=0.0, step=0.1)
         with col2:
             self.metric_type = st.selectbox("Metric", list(METRIC_CALCULATORS))
@@ -76,12 +80,13 @@ class SubmapMultiSequenceAnalyzer:
             st.warning("No valid metrics found.")
             return
 
-        # Bar chart (Plotly)
         st.markdown(f"### {self.stat_type.capitalize()} of `{self.metric_type}` per sequence")
         df_bar = pd.DataFrame({"Sequence": sequence_names, "Value": sequence_stats})
         fig_bar = px.bar(df_bar, x="Sequence", y="Value",
-                         title=f"{self.metric_type.replace('_', ' ').capitalize()} ({self.stat_type}) per Sequence",
-                         labels={"Value": f"{self.stat_type.capitalize()} {self.metric_type.replace('_', ' ')}"})
+                        title=f"{self.metric_type.replace('_', ' ').capitalize()} ({self.stat_type}) per Sequence",
+                        labels={"Value": f"{self.stat_type.capitalize()} {self.metric_type.replace('_', ' ')}"},
+                        range_y=get_range(df_bar["Value"].min(), df_bar["Value"].max()))
+
         st.plotly_chart(fig_bar, use_container_width=True)
 
         # Boxplot of per-sequence stats
