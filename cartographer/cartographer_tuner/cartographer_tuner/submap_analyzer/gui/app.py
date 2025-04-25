@@ -9,14 +9,14 @@ from cartographer_tuner.submap_analyzer.gui.state import SubmapAnalyzerState
 from cartographer_tuner.submap_analyzer.gui.visualizer import display_bitmap
 from cartographer_tuner.submap_analyzer.gui.components.individual_submap_analyzer import IndividualSubmapAnalyzer
 from cartographer_tuner.submap_analyzer.gui.components.submap_sequence_analyzer import SubmapSequenceAnalyzer
-from cartographer_tuner.submap_analyzer.gui.components.submap_multi_sequence_analyzer import SubmapMultiSequenceAnalyzer
+from cartographer_tuner.submap_analyzer.gui.components.submap_param_sets_analyzer import SubmapParamSetsAnalyzer
 
 class SubmapAnalyzerApp:
     
     def __init__(self):
         self.individual_submap_analyzer = IndividualSubmapAnalyzer()
         self.submap_sequence_analyzer = SubmapSequenceAnalyzer()
-        self.submap_multi_sequence_analyzer = SubmapMultiSequenceAnalyzer()
+        self.submap_param_sets_analyzer = SubmapParamSetsAnalyzer()
 
     def run(self):
         SubmapAnalyzerState.initialize()
@@ -32,7 +32,7 @@ class SubmapAnalyzerApp:
         elif SubmapAnalyzerApp._is_submap_sequence(self._submap_path):
             self.submap_sequence_analyzer.render()
         elif SubmapAnalyzerApp._is_sequence_of_sequences(self._submap_path):
-            self.submap_multi_sequence_analyzer.render()
+            self.submap_param_sets_analyzer.render()
         elif not self._submap_path.is_dir():
             st.error("Please select a valid folder path.")
         else:
