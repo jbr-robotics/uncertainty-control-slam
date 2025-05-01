@@ -11,7 +11,8 @@ from cartographer_tuner.submap_analyzer.gui.state import SubmapAnalyzerState
 from cartographer_tuner.metrics.calculators.pgm import (
     CornerCountCalculator,
     EnclosedAreasCalculator,
-    OccupiedProportionCalculator
+    OccupiedProportionCalculator,
+    UnsureAreaProportionCalculator
 )
 
 class SubmapSequenceAnalyzer:
@@ -19,7 +20,8 @@ class SubmapSequenceAnalyzer:
         self.calculators = {
             "corner_count": CornerCountCalculator,
             "enclosed_areas_count": EnclosedAreasCalculator,
-            "occupied_proportion": OccupiedProportionCalculator
+            "occupied_proportion": OccupiedProportionCalculator,
+            "unsure_area_proportion": UnsureAreaProportionCalculator
         }
 
     def calculate_metric(self, submap, map_type, metric_type):

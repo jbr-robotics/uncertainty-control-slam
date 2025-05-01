@@ -14,10 +14,12 @@ from scipy.interpolate import griddata
 
 from cartographer_tuner.submap_analyzer.submap import Submap
 from cartographer_tuner.submap_analyzer.gui.state import SubmapAnalyzerState
-from cartographer_tuner.metrics.calculators.pgm.corner_count_calculator import CornerCountCalculator
-from cartographer_tuner.metrics.calculators.pgm.enclosed_areas_calculator import EnclosedAreasCalculator
-from cartographer_tuner.metrics.calculators.pgm.occupied_proportion_calculator import OccupiedProportionCalculator
-
+from cartographer_tuner.metrics.calculators.pgm import (
+    CornerCountCalculator,
+    EnclosedAreasCalculator,
+    OccupiedProportionCalculator,
+    UnsureAreaProportionCalculator
+)
 
 @dataclass
 class AnalysisConfig:
@@ -45,6 +47,7 @@ class DataManager:
         "corner_count": CornerCountCalculator,
         "enclosed_areas_count": EnclosedAreasCalculator,
         "occupied_proportion": OccupiedProportionCalculator,
+        "unsure_area_proportion": UnsureAreaProportionCalculator
     }
     STAT_FUNCS = {
         "mean": np.mean,

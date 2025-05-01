@@ -16,7 +16,8 @@ from cartographer_tuner.core.cartographer_config_manager import CartographerConf
 from cartographer_tuner.submap_analyzer.submap import Submap 
 
 from cartographer_tuner.metrics.calculators.pgm.enclosed_areas_calculator import EnclosedAreasCalculator
-
+from cartographer_tuner.metrics.calculators.pgm.corner_count_calculator import CornerCountCalculator
+from cartographer_tuner.metrics.calculators.pgm.occupied_proportion_calculator import OccupiedProportionCalculator
 
 METRIC_CALCULATOR_CLASSES: List[Type] = [
     EnclosedAreasCalculator,

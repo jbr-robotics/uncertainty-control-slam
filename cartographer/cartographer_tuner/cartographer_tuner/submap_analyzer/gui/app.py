@@ -44,7 +44,12 @@ class SubmapAnalyzerApp:
 
     @staticmethod
     def _is_submap_sequence(submap_path: Path) -> bool:
-        return submap_path.is_dir() and all(f.name.startswith("submap_") and f.name.endswith(".pkl") and f.is_file() for f in submap_path.iterdir())
+        return submap_path.is_dir() and all(
+        
+            (f.name.startswith("submap_") and f.name.endswith(".pkl") and f.is_file())
+            or 
+            (f.name == "configs")
+            for f in submap_path.iterdir())
 
     @staticmethod
     def _is_sequence_of_sequences(submap_path: Path) -> bool:
