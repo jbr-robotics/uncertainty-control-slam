@@ -15,16 +15,22 @@ from cartographer_tuner.metrics.metric import Metric
 from cartographer_tuner.core.cartographer_config_manager import CartographerConfigManager
 from cartographer_tuner.submap_analyzer.submap import Submap 
 
-from cartographer_tuner.metrics.calculators.pgm.enclosed_areas_calculator import EnclosedAreasCalculator
-from cartographer_tuner.metrics.calculators.pgm.corner_count_calculator import CornerCountCalculator
-from cartographer_tuner.metrics.calculators.pgm.occupied_proportion_calculator import OccupiedProportionCalculator
+from cartographer_tuner.metrics.calculators.pgm import (
+    EnclosedAreasCalculator,
+    CornerCountCalculator,
+    OccupiedProportionCalculator,
+    UnsureAreaProportionCalculator
+)
 
 METRIC_CALCULATOR_CLASSES: List[Type] = [
     EnclosedAreasCalculator,
+    CornerCountCalculator,
+    OccupiedProportionCalculator,
+    UnsureAreaProportionCalculator
 ]
 assert METRIC_CALCULATOR_CLASSES, "METRIC_CALCULATOR_CLASSES list cannot be empty."
 
-PRIMARY_LOSS_METRIC_NAME = EnclosedAreasCalculator.ENLOSED_AREAS
+PRIMARY_LOSS_METRIC_NAME = UnsureAreaProportionCalculator.UNSURE_AREA_PROPORTION
 assert isinstance(PRIMARY_LOSS_METRIC_NAME, str) and PRIMARY_LOSS_METRIC_NAME, \
     "PRIMARY_LOSS_METRIC_NAME must be a non-empty string."
 
