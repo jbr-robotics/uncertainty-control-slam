@@ -46,6 +46,7 @@ submap-analyzer = "cartographer_tuner.cli.submap_analyzer_gui:main"
 first-submap-cartographer = "cartographer_tuner.cli.first_submap_cartographer:main"
 submap-sampler-cartographer = "cartographer_tuner.cli.submap_sampler_cartographer:main"
 submap-grid-search = "cartographer_tuner.cli.submap_grid_search:main"
+submap-hyperopt-search = "cartographer_tuner.cli.submap_hyperopt_search:main"
 
 [tool.cibuildwheel]
 test-command = ["pytest {package}/tests -v"]
