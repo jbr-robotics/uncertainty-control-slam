@@ -371,20 +371,37 @@ class SubmapHyperoptSearch(TerminalRunnable):
             assert param_type, f"Missing 'type' key for parameter '{name}'."
             param_type = param_type.lower()
             label = name
+            distribution = details.get("distribution", "uniform").lower()
 
             try:
                 if param_type == "float":
                     assert "min" in details and "max" in details, f"Missing 'min' or 'max' for float parameter '{name}'."
                     min_val, max_val = float(details["min"]), float(details["max"])
                     assert min_val < max_val, f"min must be less than max for float parameter '{name}'."
-                    space[name] = hp.uniform(label, min_val, max_val)
-                    print(f"      - {name}: float (uniform, min={min_val}, max={max_val})")
+                    
+                    if distribution == "uniform":
+                        space[name] = hp.uniform(label, min_val, max_val)
+                        print(f"      - {name}: float (uniform, min={min_val}, max={max_val})")
+                    elif distribution == "loguniform":
+                        assert min_val > 0, f"min must be greater than 0 for loguniform distribution for parameter '{name}'."
+                        space[name] = hp.loguniform(label, np.log(min_val), np.log(max_val))
+                        print(f"      - {name}: float (loguniform, min={min_val}, max={max_val})")
+                    else:
+                        raise ValueError(f"Unsupported distribution '{distribution}' for float parameter '{name}'.")
+                        
                 elif param_type == "int":
                     assert "min" in details and "max" in details, f"Missing 'min' or 'max' for int parameter '{name}'."
                     min_val, max_val = int(details["min"]), int(details["max"])
                     assert min_val <= max_val, f"min must be less than or equal to max for int parameter '{name}'."
-                    space[name] = scope.int(hp.quniform(label, min_val, max_val, q=1))
-                    print(f"      - {name}: int (quniform, min={min_val}, max={max_val})")
+                    
+                    if distribution == "uniform":
+                        space[name] = scope.int(hp.quniformint(label, min_val, max_val))
+                        print(f"      - {name}: int (quniformint, min={min_val}, max={max_val})")
+                    elif distribution == "loguniform":
+                        assert False, "Loguniform distribution for int parameters is not supported."
+                    else:
+                        raise ValueError(f"Unsupported distribution '{distribution}' for int parameter '{name}'.")
+                        
                 elif param_type == "bool":
                     space[name] = hp.choice(label, [False, True])
                     print(f"      - {name}: bool (choice)")
