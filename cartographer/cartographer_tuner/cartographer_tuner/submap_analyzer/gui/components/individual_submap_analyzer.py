@@ -33,21 +33,24 @@ class IndividualSubmapAnalyzer:
             return
 
         st.markdown("### Submap Layers and Metrics")
+        
+        normalize = not st.checkbox("Disable normalization", value=False)
 
         col1, col2, col3 = st.columns(3)
 
         with col1:
-            self.analyze_layer("Alpha", submap.alpha)
+            self.analyze_layer("Alpha", submap.alpha, normalize=normalize)
 
         with col2:
-            self.analyze_layer("Intensity", submap.intensity)
+            self.analyze_layer("Intensity", submap.intensity, normalize=normalize)
 
         with col3:
-            self.analyze_layer("Map", submap.map)
+            self.analyze_layer("Map", submap.map, normalize=normalize)
 
-    def analyze_layer(self, name: str, data: np.ndarray):
+    def analyze_layer(self, name: str, data: np.ndarray, normalize: bool = True):
         st.markdown(f"**{name}**")
-        self.display_plotly_image(data, title=f"{name} Bitmap")
+        
+        self.display_plotly_image(data, title=f"{name} Bitmap", normalize=normalize)
 
         # --- Corner Count ---
         corner_calc = CornerCountCalculator(map_data=data, debug=False)
@@ -73,15 +76,11 @@ class IndividualSubmapAnalyzer:
         st.write(f"Unsure area proportion: {unsure_metrics['unsure_area_proportion'].value:.3f}")
         self.display_debug_image(unsure_calc.debug_image(), f"{name} Unsure Area Proportion")
 
-    def display_plotly_image(self, image: np.ndarray, title=""):
-        # Normalize image for better contrast if needed
-        norm_img = image.astype(np.float32)
-        norm_img -= norm_img.min()
-        if norm_img.max() > 0:
-            norm_img /= norm_img.max()
-
-        fig = px.imshow(norm_img, color_continuous_scale="gray", origin="lower")
-        fig.update_layout(title=title, coloraxis_showscale=False, margin=dict(l=0, r=0, t=30, b=0))
+    def display_plotly_image(self, image: np.ndarray, title="", normalize=True):
+        if not normalize:
+            image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+        fig = px.imshow(image, color_continuous_scale="gray", origin="lower")
+        fig.update_layout(title=title, coloraxis_showscale=False)
         st.plotly_chart(fig, use_container_width=True)
 
     def display_debug_image(self, img_rgb: np.ndarray, title: str):
