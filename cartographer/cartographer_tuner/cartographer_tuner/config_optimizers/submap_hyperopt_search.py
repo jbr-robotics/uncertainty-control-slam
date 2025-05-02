@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Dict, Any, List, Type, Optional, Union
 
 import numpy as np
-from hyperopt import fmin, tpe, hp, Trials, STATUS_OK
+from hyperopt import fmin, tpe, hp, Trials, STATUS_OK, space_eval
 from hyperopt.pyll import scope # For integer parameters
 
 from cartographer_tuner.utils.terminal_runnable import TerminalRunnable
@@ -85,15 +85,14 @@ class SubmapHyperoptSearch(TerminalRunnable):
             )
 
             print("\n==> Optimization finished!")
-            best_trial_params = trials.argmin
 
-            if best_trial_params is not None:
+            if best is not None:
                 print("Best parameters found (according to primary loss):")
-                best_params_readable = self._get_readable_params(best_trial_params, search_space_config)
+                best_params_readable = space_eval(hyperopt_space, best)
                 print(json.dumps(best_params_readable, indent=2))
 
-                # Display details from the best trial entry
                 best_trial_entry = trials.best_trial
+                
                 if best_trial_entry and 'result' in best_trial_entry:
                     print(f"\nBest trial details (Trial Index: {best_trial_entry.get('tid', 'N/A')}):")
                     best_loss = best_trial_entry['result'].get('loss')
@@ -421,42 +420,3 @@ class SubmapHyperoptSearch(TerminalRunnable):
                  raise ValueError(f"Invalid value type in definition for parameter '{name}': {type_e}") from type_e
 
         return space
-
-
-    def _get_readable_params(self, best_param_set: Dict[str, Any], search_space_config: Dict[str, Any]) -> Dict[str, Any]:
-        """Converts hyperopt's result format back to readable values with validation."""
-        readable_params = {}
-        assert isinstance(best_param_set, dict), "best_param_set must be a dictionary."
-        assert isinstance(search_space_config, dict), "search_space_config must be a dictionary."
-
-        for name, index_or_value in best_param_set.items():
-            details = search_space_config.get(name)
-            assert details is not None, f"Parameter '{name}' from hyperopt result not found in search space config."
-            assert isinstance(details, dict), f"Search space definition for '{name}' is not a dictionary."
-
-            param_type = details.get("type", "float").lower()
-
-            try:
-                if param_type == "bool":
-                    assert index_or_value in [0, 1], f"Invalid index '{index_or_value}' for bool parameter '{name}'."
-                    readable_params[name] = [False, True][int(index_or_value)]
-                elif param_type == "choice":
-                    options = details["options"]
-                    assert isinstance(options, list), f"'options' key missing or not a list for choice param '{name}'."
-                    idx = int(index_or_value)
-                    assert 0 <= idx < len(options), \
-                        f"Index {idx} out of bounds for options of choice parameter '{name}'."
-                    readable_params[name] = options[idx]
-                else: # float or int
-                     # Basic type check (though hyperopt should return correct type)
-                     assert isinstance(index_or_value, (int, float, np.number)), \
-                          f"Expected numerical value for param '{name}', got {type(index_or_value).__name__}."
-                     # Ensure int param is actually int (via scope.int)
-                     if param_type == "int":
-                          assert isinstance(index_or_value, (int, np.integer)), \
-                               f"Expected int value for param '{name}', got {type(index_or_value).__name__}."
-                     readable_params[name] = index_or_value
-            except (KeyError, IndexError, ValueError, TypeError, AssertionError) as e:
-                 raise RuntimeError(f"Failed to convert hyperopt result value for parameter '{name}': {e}") from e
-
-        return readable_params
