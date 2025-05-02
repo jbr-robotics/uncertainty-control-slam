@@ -50,13 +50,13 @@ class OccupiedProportionCalculator(BasePgmMetricCalculator):
         mean_value = np.mean(self.map_data)
 
         if len(self.map_data.shape) == 2:
-            rgb_image = cv2.cvtColor(self.map_data, cv2.COLOR_GRAY2BGR)
+            rgb_image = cv2.cvtColor(self.map_data, cv2.COLOR_GRAY2RGB)
         else:
             rgb_image = self.map_data.copy()
 
         output_img = rgb_image.copy()
 
-        red = (0, 0, 255)
+        red = (255, 0, 0)
         alpha = 0.4
 
         occupied_mask = self.map_data > mean_value
