@@ -11,6 +11,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.pipeline import make_pipeline
 from scipy.spatial import cKDTree
 from scipy.interpolate import griddata
+from tqdm import tqdm
 
 from cartographer_tuner.submap_analyzer.submap import Submap
 from cartographer_tuner.submap_analyzer.gui.state import SubmapAnalyzerState
@@ -72,7 +73,7 @@ class DataManager:
         errors = []
         param_dirs = sorted([d for d in root_dir.iterdir() if d.is_dir()])
         
-        for param_dir in param_dirs:
+        for param_dir in tqdm(param_dirs, "Calculate metrics"):
             for f in sorted(param_dir.glob("submap_*.pkl"), key=lambda f: int(re.search(r"submap_(\d+)", f.stem).group(1)) if re.search(r"submap_(\d+)", f.stem) else -1):
                 try:
                     submap_id = int(re.search(r"submap_(\d+)", f.stem).group(1))
@@ -286,7 +287,7 @@ class DataManager:
 
 class SubmapParamSetsAnalyzer:
     # UI constants
-    SCALE_OPTIONS = ["Uniform", "Log X", "Log Y", "Log X and Y"]
+    SCALE_OPTIONS = ["Log X and Y", "Uniform", "Log X", "Log Y"]
     
     def __init__(self):
         self.config = AnalysisConfig()
@@ -305,13 +306,12 @@ class SubmapParamSetsAnalyzer:
             self.config.max_filter = st.number_input("Max value filter", value=1000.0, step=0.1, key="max_filter_config")
         self.config.stat_type = st.selectbox("Statistic to compute per parameter set", list(DataManager.STAT_FUNCS), key="stat_type_config")
     
-    def render_heatmap(self, params_df):
+    def render_heatmap(self, df_heatmap):
         """Render heatmap visualization for x_y formatted parameter set names."""
         metric_name = f"{self.config.metric_type} (normalized)" if self.config.normalize else self.config.metric_type
         st.markdown(f"### Heatmap of `{metric_name}` ({self.config.stat_type})")
         
         # Get processed data from DataManager
-        df_heatmap = DataManager.prepare_heatmap_data(params_df)
         
         if df_heatmap.empty:
             st.warning("One or more parameter set names don't follow the expected 'x_y' format")
@@ -348,7 +348,8 @@ class SubmapParamSetsAnalyzer:
         scale_option = st.selectbox(
             "Axis Scale",
             self.SCALE_OPTIONS,
-            key=f"scale_toggle_{self.config.metric_type}_{self.config.stat_type}_heatmap"
+            key=f"scale_toggle_{self.config.metric_type}_{self.config.stat_type}_heatmap",
+            
         )
         
         # Apply scale based on selection
@@ -423,6 +424,7 @@ class SubmapParamSetsAnalyzer:
         st.plotly_chart(fig_box, use_container_width=True)
 
     def render_3d_histogram(self, root_dir):
+        return
         """Render 3D histogram visualization based on alternative experiment design."""
         st.markdown("## 3D Visualization of Alternative Experiment Design")
         st.markdown("""
@@ -769,13 +771,15 @@ class SubmapParamSetsAnalyzer:
 
         # Render appropriate visualizations based on parameter set name format
         if all(map(lambda x: str(x).count('_') == 1, params_df['param_set'].tolist())):
-            self.render_heatmap(params_df)
+            df_heatmap = DataManager.prepare_heatmap_data(params_df)
+            self.render_heatmap(df_heatmap)
         else:
             self.render_bars(params_df)
 
         self.render_boxplots(params_df)
 
     def render_raw_data_view(self, root_dir):
+        return
         """Render the raw metrics data view."""
         st.write("Creating raw metrics dataframe...")
         
