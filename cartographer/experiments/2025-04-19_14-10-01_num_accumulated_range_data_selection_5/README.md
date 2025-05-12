@@ -43,3 +43,11 @@ Scans at `25` seem good:
 ![](image-7.png)
 ![](image-8.png)
 ![](image-9.png)
+
+---
+
+Note from commit: 50a8ad1a82c5c263c0c089a22bc8cab707436536
+
+Metric `uncertain area` has significantly different distribution
+
+![](image-10.png)
