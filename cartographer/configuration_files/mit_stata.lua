@@ -63,8 +63,8 @@ TRAJECTORY_BUILDER_2D.submaps.num_range_data = 20
 -- TRAJECTORY_BUILDER_2D.imu_gravity_time_constant = 1e-2
 
 
--- TRAJECTORY_BUILDER_2D.ceres_scan_matcher.translation_weight = 0.0019246355992925644
--- TRAJECTORY_BUILDER_2D.ceres_scan_matcher.rotation_weight = 2.573146804063063
+TRAJECTORY_BUILDER_2D.ceres_scan_matcher.translation_weight = 0.26593869858292596
+TRAJECTORY_BUILDER_2D.ceres_scan_matcher.rotation_weight = 0.020086516348328098
 -- TRAJECTORY_BUILDER_2D.ceres_scan_matcher.occupied_space_weight = 1e1
 -- TRAJECTORY_BUILDER_2D.num_accumulated_range_data = 1
 -- TRAJECTORY_BUILDER_2D.use_online_correlative_scan_matching = false
