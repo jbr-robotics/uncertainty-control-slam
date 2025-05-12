@@ -52,8 +52,8 @@ MAP_BUILDER.use_trajectory_builder_2d = true
 TRAJECTORY_BUILDER_2D.min_range = 0.5
 TRAJECTORY_BUILDER_2D.max_range = 30
 
-TRAJECTORY_BUILDER_2D.num_accumulated_range_data = 25
--- TRAJECTORY_BUILDER_2D.submaps.num_range_data = 30
+-- TRAJECTORY_BUILDER_2D.num_accumulated_range_data = 25
+TRAJECTORY_BUILDER_2D.submaps.num_range_data = 1
 
 -- LOCAL SLAM
 -- TRAJECTORY_BUILDER_2D.min_z = -0.5
@@ -63,8 +63,8 @@ TRAJECTORY_BUILDER_2D.num_accumulated_range_data = 25
 -- TRAJECTORY_BUILDER_2D.imu_gravity_time_constant = 1e-2
 
 
-TRAJECTORY_BUILDER_2D.ceres_scan_matcher.translation_weight = 0.0019246355992925644
-TRAJECTORY_BUILDER_2D.ceres_scan_matcher.rotation_weight = 2.573146804063063
+-- TRAJECTORY_BUILDER_2D.ceres_scan_matcher.translation_weight = 0.0019246355992925644
+-- TRAJECTORY_BUILDER_2D.ceres_scan_matcher.rotation_weight = 2.573146804063063
 -- TRAJECTORY_BUILDER_2D.ceres_scan_matcher.occupied_space_weight = 1e1
 -- TRAJECTORY_BUILDER_2D.num_accumulated_range_data = 1
 -- TRAJECTORY_BUILDER_2D.use_online_correlative_scan_matching = false
