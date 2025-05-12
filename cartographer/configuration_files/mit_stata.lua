@@ -53,7 +53,7 @@ TRAJECTORY_BUILDER_2D.min_range = 0.5
 TRAJECTORY_BUILDER_2D.max_range = 30
 
 TRAJECTORY_BUILDER_2D.num_accumulated_range_data = 28
-TRAJECTORY_BUILDER_2D.submaps.num_range_data = 20
+TRAJECTORY_BUILDER_2D.submaps.num_range_data = 65
 
 -- LOCAL SLAM
 -- TRAJECTORY_BUILDER_2D.min_z = -0.5
