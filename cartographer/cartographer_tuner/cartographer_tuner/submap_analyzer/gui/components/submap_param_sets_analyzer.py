@@ -11,7 +11,10 @@ from sklearn.linear_model import LinearRegression
 from sklearn.pipeline import make_pipeline
 from scipy.spatial import cKDTree
 from scipy.interpolate import griddata
+from scipy.signal import convolve2d
 from tqdm import tqdm
+from scipy.ndimage import gaussian_filter # For Gaussian smoothing
+from scipy.interpolate import RBFInterpolator
 
 from cartographer_tuner.submap_analyzer.submap import Submap
 from cartographer_tuner.submap_analyzer.gui.state import SubmapAnalyzerState
@@ -34,6 +37,175 @@ class AnalysisConfig:
     # 3D plot configuration
     bucket_count: int = 5
 
+def plot_3d_surface(df_heatmap: pd.DataFrame, 
+                              scale_x: bool, 
+                              scale_y: bool, 
+                              scale_z: bool,
+                              x_col: str = 'x_param',
+                              y_col: str = 'y_param',
+                              z_col: str = 'metric_value',
+                              grid_resolution: int = 50,
+                              rbf_smoothing: float = 0.1,
+                              rbf_kernel: str = 'thin_plate_spline'):
+    # --- Input Validation ---
+    if not isinstance(df_heatmap, pd.DataFrame):
+        st.error("Input 'df_heatmap' must be a pandas DataFrame.")
+        return
+    
+    required_cols = [x_col, y_col, z_col]
+    if not all(col in df_heatmap.columns for col in required_cols):
+        st.error(f"DataFrame must contain columns: {', '.join(required_cols)}. "
+                 f"Available columns: {', '.join(df_heatmap.columns)}")
+        return
+
+    # --- 1. Data Extraction and Initial Cleaning ---
+    df_extracted = df_heatmap[required_cols].copy()
+    df_extracted.dropna(subset=required_cols, inplace=True) # Initial drop for original NaNs
+
+    if len(df_extracted) == 0:
+        st.warning("No data points to plot after initial NaN removal.")
+        return
+
+    x_data_orig = df_extracted[x_col].values.astype(float) # Ensure float for log ops
+    y_data_orig = df_extracted[y_col].values.astype(float)
+    z_data_orig = df_extracted[z_col].values.astype(float)
+
+    # --- 2. Logarithmic Scaling (if enabled) ---
+    x_processed = x_data_orig.copy()
+    y_processed = y_data_orig.copy()
+    z_processed = z_data_orig.copy()
+
+    x_axis_label, y_axis_label, z_axis_label = x_col, y_col, z_col
+
+    if scale_x:
+        if np.any(x_data_orig <= -1):
+            st.warning(f"Column '{x_col}' contains values <= -1. "
+                       f"Applying log1p transformation (log(1+x)) will result in NaN for these values. "
+                       f"These points will be excluded from surface fitting and plotting.")
+        with np.errstate(invalid='ignore'): # Suppress runtime warning for log(negative)
+            x_processed = np.log(x_data_orig)
+        x_axis_label = f"{x_col} (log scale)"
+    
+    if scale_y:
+        if np.any(y_data_orig <= -1):
+            st.warning(f"Column '{y_col}' contains values <= -1. "
+                       f"Applying log1p transformation (log(1+x)) will result in NaN for these values. "
+                       f"These points will be excluded from surface fitting and plotting.")
+        with np.errstate(invalid='ignore'):
+            y_processed = np.log(y_data_orig)
+        y_axis_label = f"{y_col} (log scale)"
+
+    if scale_z:
+        if np.any(z_data_orig <= -1):
+            st.warning(f"Column '{z_col}' contains values <= -1. "
+                       f"Applying log1p transformation (log(1+x)) will result in NaN for these values. "
+                       f"These points will be excluded from surface fitting and plotting.")
+        with np.errstate(invalid='ignore'):
+            z_processed = np.log(z_data_orig)
+        z_axis_label = f"{z_col} (log scale)"
+
+    # --- 3. Consolidate and Filter NaNs from Processed Data ---
+    # Create a DataFrame from potentially transformed data
+    df_transformed = pd.DataFrame({
+        'x_proc': x_processed,
+        'y_proc': y_processed,
+        'z_proc': z_processed
+    })
+
+    # Drop rows where any of the processed values became NaN (e.g., due to log(-ve number))
+    df_transformed.dropna(subset=['x_proc', 'y_proc', 'z_proc'], inplace=True)
+
+    if len(df_transformed) == 0:
+        st.warning("No valid data points remain after applying transformations and filtering NaNs. Cannot plot.")
+        return
+        
+    x_final = df_transformed['x_proc'].values
+    y_final = df_transformed['y_proc'].values
+    z_final = df_transformed['z_proc'].values
+
+    # Check if enough data points remain for surface fitting after all processing
+    if len(x_final) < 4: 
+        st.warning(f"Insufficient data points ({len(x_final)}) after transformations and NaN filtering. "
+                   "Need at least 4 for robust surface fitting. Plotting points only.")
+        if len(x_final) > 0:
+            fig_points_only = go.Figure()
+            fig_points_only.add_trace(go.Scatter3d(
+                x=x_final, 
+                y=y_final, 
+                z=z_final,
+                mode='markers',
+                marker=dict(size=5, color='red'),
+                name='Data Points (Processed)'
+            ))
+            fig_points_only.update_layout(
+                title='3D Scatter Plot (Insufficient Data for Surface)',
+                scene=dict(xaxis_title=x_axis_label, yaxis_title=y_axis_label, zaxis_title=z_axis_label),
+                margin=dict(l=0, r=0, b=0, t=40)
+            )
+            st.plotly_chart(fig_points_only, use_container_width=True)
+        else:
+            st.warning("No data points to plot after all processing.")
+        return
+
+    # --- 4. Build Smoothed Surface (RBF Interpolation) ---
+    try:
+        # Define the boundaries for the grid based on final processed data
+        xi = np.linspace(x_final.min(), x_final.max(), grid_resolution)
+        yi = np.linspace(y_final.min(), y_final.max(), grid_resolution)
+        X_grid, Y_grid = np.meshgrid(xi, yi)
+
+        points_for_rbf = np.column_stack((x_final, y_final))
+        
+        rbf = RBFInterpolator(points_for_rbf, z_final, 
+                              smoothing=rbf_smoothing, kernel=rbf_kernel, degree=0) 
+        
+        Z_grid = rbf(np.column_stack((X_grid.ravel(), Y_grid.ravel()))).reshape(X_grid.shape)
+    
+    except Exception as e:
+        st.error(f"Error during surface interpolation: {e}")
+        return 
+
+    # --- 5. Visualize with Plotly ---
+    fig = go.Figure()
+
+    fig.add_trace(go.Surface(
+        x=X_grid, 
+        y=Y_grid, 
+        z=Z_grid,
+        opacity=0.85,
+        colorscale='Viridis',
+        name='Smoothed Surface',
+        showscale=True,
+        colorbar=dict(title=z_axis_label, thickness=15, len=0.75, x=0.9)
+    ))
+
+
+    hover_text = [f"Original values:\nX: {x}\nY: {y}\nZ: {z}" for x, y, z in zip(x_data_orig, y_data_orig, z_data_orig)]
+
+    fig.add_trace(go.Scatter3d(
+        x=x_final, 
+        y=y_final, 
+        z=z_final,
+        mode='markers',
+        marker=dict(size=2, color=z_final, colorscale='blackbody', opacity=0.5),
+        name='Data Points',
+        hovertext=hover_text
+    ))
+
+    fig.update_layout(
+        title='3D Smoothed Surface Plot with Data Points',
+        scene=dict(
+            xaxis_title=x_axis_label,
+            yaxis_title=y_axis_label,
+            zaxis_title=z_axis_label,
+            aspectratio=dict(x=1, y=1, z=0.7),
+            camera_eye=dict(x=1.2, y=1.2, z=0.8)
+        ),
+        margin=dict(l=10, r=10, b=10, t=50),
+        legend=dict(yanchor="top", y=0.95, xanchor="left", x=0.05, bgcolor='rgba(255,255,255,0.5)')
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
 
 def get_plot_range(min_val, max_val):
     """Calculate padding for plot ranges."""
@@ -225,15 +397,6 @@ class DataManager:
         
     @classmethod
     def prepare_3d_histogram_data(cls, df_raw, config):
-        """Prepare data for 3D histogram visualization based on alternative design.
-        
-        Args:
-            df_raw: DataFrame with raw metrics
-            config: Analysis configuration
-            
-        Returns:
-            DataFrame with x (num_range_data), y (corner_count_bucket), z (metric_value), and variation
-        """
         if df_raw.empty:
             return pd.DataFrame(columns=["num_range_data", "corner_count_bucket", "metric_value", "variation"])
             
@@ -307,7 +470,6 @@ class SubmapParamSetsAnalyzer:
         self.config.stat_type = st.selectbox("Statistic to compute per parameter set", list(DataManager.STAT_FUNCS), key="stat_type_config")
     
     def render_heatmap(self, df_heatmap):
-        """Render heatmap visualization for x_y formatted parameter set names."""
         metric_name = f"{self.config.metric_type} (normalized)" if self.config.normalize else self.config.metric_type
         st.markdown(f"### Heatmap of `{metric_name}` ({self.config.stat_type})")
         
@@ -772,7 +934,8 @@ class SubmapParamSetsAnalyzer:
         # Render appropriate visualizations based on parameter set name format
         if all(map(lambda x: str(x).count('_') == 1, params_df['param_set'].tolist())):
             df_heatmap = DataManager.prepare_heatmap_data(params_df)
-            self.render_heatmap(df_heatmap)
+            plot_3d_surface(df_heatmap, scale_x=True, scale_y=True, scale_z=True, x_col='x_param', y_col='y_param', z_col='metric_value', rbf_smoothing=0.2)
+            # self.render_heatmap(df_heatmap)
         else:
             self.render_bars(params_df)
 
