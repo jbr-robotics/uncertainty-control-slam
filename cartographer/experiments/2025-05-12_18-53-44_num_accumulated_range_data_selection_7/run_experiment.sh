@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# This script must be run inside docker container. 
+# It contains the sequence of commands that must be executed to run the experiment.
+
+submap-grid-search \
+    --bag_filename /data/bags/2011-01-28-06-37-23 \
+    --config_dir /opt/ros/humble/share/cartographer_ros/configuration_files \
+    --config_basename mit_stata.lua \
+    --rate 1 \
+    --samples 20 \
+    --output_root /data/maps/num_acc_range_data_7 \
+    --grid='{"trajectory_builder.trajectory_builder_2d.num_accumulated_range_data": [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]}' \
+    --skip_begin 50 \
+    --skip_end 60 \
+    2>&1 | tee /data/num_accumulated_range_data_select.log
