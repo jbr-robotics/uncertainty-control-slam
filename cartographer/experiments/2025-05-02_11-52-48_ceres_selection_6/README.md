@@ -18,3 +18,11 @@ In uncertain areas it is more difficult to catch the pattern:
 
 Surface construction is needed to find the best parameter using 3D plit
 
+---
+
+Comment from commit: 13389e5a6c1ad7e967cfdc2842871d55fe5c52a9
+
+Surface visualization is helpful to find area with lower metric values. Global minimum however is not explicit as there are several local minimums.  
+
+Visualization of uncertain area proportion metric:
+![](image-2.png)
