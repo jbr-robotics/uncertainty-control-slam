@@ -1,0 +1,9 @@
+{
+    "experiment_id": "2025-05-12_16-57-56_num_range_data_selection_3",
+    "created_at": "2025-05-12T13:57:56Z",
+    "git": {
+        "commit": "7916f9528577d6778dfa17008391cee72d9f7b50",
+        "repository": "git@github.com:jbr-robotics/uncertainty-control-slam.git",
+        "branch": "main"
+    }
+}
