@@ -1,20 +1,38 @@
----
-tags:
-  - 3d-slam
-  - internship
----
+# Uncertainty Control SLAM
 
-# Effective data structures for 3D SLAM
+This repository contains a collection of tools and utilities for working with SLAM (Simultaneous Localization and Mapping) systems, focused on processing, visualizing, and analyzing 3D point cloud data.
 
-Research objective: Development and optimization of data structures for representing maps in 3D SLAM systems for use on low-power devices (e.g., micro-drones).
+## Repository Structure
 
-The main task is to create an efficient data structure capable of processing and storing information about complex three-dimensional environments in real-time while minimizing resource consumption.
+### Cartographer
 
-It's important to consider (maybe not all at once):
-- Limited computational power (we can't compute quickly)
-- Energy efficiency (we can't compute for long periods)
-- Limited memory (we can't process large amounts of information)
+Tools and configurations for using Google's Cartographer SLAM system:
+- Docker environment for Cartographer
+- Parameter optimization tools
+- Example configurations and workflows
+- Map quality estimation utilities
 
-The first step is to understand the current state: conduct a comparative analysis of various data structures, such as octo-trees, graphs, and voxel models (maybe something new has emerged), to determine the most suitable solution.
+### Point Cloud Viewer
 
-The outcome of the internship could be a theoretical or experimental verification of the hypothesis about the most effective representation.
+A Docker-based visualization tool for 3D point clouds:
+- Build and view octree representations of point cloud data
+- Interactive SDL viewer with camera controls
+- Tools for processing PLY files
+
+### KITTI Tools
+
+Utilities for working with the KITTI dataset:
+- Conversion tools from KITTI format to ROS bags
+- Documentation on downloading and processing KITTI data
+
+### PGM Editor
+
+A standalone Python application for creating and editing PGM (Portable Gray Map) image files:
+- Create and edit occupancy grid maps
+- Various drawing tools with adjustable properties
+- Import/export functionality for PGM formats
+
+## Getting Started
+
+Each subdirectory contains its own README with specific instructions for using the tools in that directory.
+

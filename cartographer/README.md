@@ -11,7 +11,7 @@ This directory contains a Docker environment for Cartographer.
 
 ### Run Docker
 ```sh
-./run_cartographer_docker.sh
+./run_docker.sh
 ```
 
 > **Note:** The script creates the `cartographer/data` directory and mounts it to `/data`, allowing it to be used for data sharing.
@@ -42,11 +42,23 @@ ros2 bag rename \
     /path/to/bag_dir/
 ```
 
-### Parameter Optimizer
+### Parameter Optimizers
 
-This tool optimizes Cartographer parameters using a grid search and integrates the [Cartographer evaluation tool](https://google-cartographer.readthedocs.io/en/latest/evaluation.html) for quality estimation.
+This repository includes two parameter optimization tools to improve SLAM performance for specific datasets:
 
-#### Example Usage:
+#### 1. Grid Search Optimizer
+
+##### How It Works
+
+The parameter optimizer systematically tests different combinations of Cartographer parameter values and evaluates the resulting map quality. This process helps identify optimal parameter settings that produce the best SLAM results for your specific use case.
+
+##### Key Features:
+
+- **Grid Search Optimization:** Tests all combinations of specified parameter values
+- **Multiple Quality Metrics:** Evaluates maps using various metrics (corner count, enclosed areas, occupied space)
+- **CSV Output:** Generates structured results for further analysis
+
+##### Example Usage:
 
 ```sh
 cd /root
@@ -63,6 +75,59 @@ python3 -m quality_estimator.parameter_optimizer \
     | tee /data/find_kitti_ceres_weights.log
 ```
 
+#### 2. HyperOpt-based Optimizer
+
+This advanced optimizer uses the HyperOpt library for Bayesian optimization of parameters, offering more sophisticated parameter search strategies.
+
+##### Key Features:
+
+- **Bayesian Optimization:** Uses Tree-structured Parzen Estimator (TPE) algorithm to efficiently search parameter space
+- **Continuous Parameter Ranges:** Can explore continuous parameter ranges with various distributions (uniform, log-uniform)
+- **Uncertainty Metric:** Optimizes based on map uncertainty proportion using K-means clustering to identify uncertain areas
+- **Submap Analysis:** Evaluates multiple submaps for more robust parameter assessment
+
+##### Example Usage:
+
+```sh
+submap-hyperopt-search \
+    --search_space_def='{
+        "trajectory_builder.trajectory_builder_2d.ceres_scan_matcher.translation_weight": {
+            "type": "float",
+            "min": 0.001,
+            "max": 10000,
+            "distribution": "loguniform"
+        },
+        "trajectory_builder.trajectory_builder_2d.ceres_scan_matcher.rotation_weight": {
+            "type": "float",
+            "min": 0.001,
+            "max": 10000,
+            "distribution": "loguniform"
+        }
+    }' \
+    --config_dir=/opt/ros/humble/share/cartographer_ros/configuration_files \
+    --config_basename=mit_stata.lua \
+    --bag_filename=/data/bags/2011-01-28-06-37-23 \
+    --output_root=/data/maps/experiment_output \
+    --max_evals=300 \
+    --samples=5
+```
+
+##### Command Parameters:
+
+- `--search_space_def`: JSON definition of parameters to optimize with their ranges and distributions
+- `--config_dir`: Directory containing Cartographer configuration files
+- `--config_basename`: Base filename of the configuration to use
+- `--bag_filename`: Path to the ROS bag file
+- `--output_root`: Directory to store optimization results and intermediate files
+- `--max_evals`: Maximum number of parameter combinations to evaluate
+- `--samples`: Number of submaps to generate for each parameter set
+
+For more advanced optimization capabilities, check out the [Cartographer Tuner](./cartographer_tuner) module, which provides additional metrics and optimization strategies.
+
+### Experiments
+
+The `experiments` directory contains examples of different optimization runs with analysis results. These can serve as reference for your own parameter tuning efforts.
+
 ## Additional Notes
 
 ### Map Visualization
@@ -71,7 +136,7 @@ python3 -m quality_estimator.parameter_optimizer \
 
 ### Map Quality Estimation
 
-> **Recommendation:** Use the [parameter optimizer](#parameter-optimizer) for fine-tuning instead of relying solely on the information in this section.
+> **Recommendation:** Use the [parameter optimizers](#parameter-optimizers) for fine-tuning instead of relying solely on the information in this section.
 
 > **Note:** As mentioned in the [Cartographer documentation](https://google-cartographer.readthedocs.io/en/latest/evaluation.html#advantages-limitations), this estimation method is valid only for local SLAM evaluations with optimizations disabled.
 
