@@ -25,10 +25,10 @@ def generate_launch_description():
             "-configuration_basename", "uzh_tracking_area_run2_2D.lua",
             "--collect_metrics",
         ],
-        remappings=[
-            ("/points2", "/os_cloud_node/points"),
-            ("/imu", "/os_cloud_node/imu")
-        ]
+        # remappings=[
+        #     ("/points2", "/os_cloud_node/points"),
+        #     ("/imu", "/os_cloud_node/imu")
+        # ]
     )
 
     occupancy_grid_node = Node(
