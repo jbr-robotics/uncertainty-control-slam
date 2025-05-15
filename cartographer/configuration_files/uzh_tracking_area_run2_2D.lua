@@ -51,8 +51,8 @@ MAP_BUILDER.use_trajectory_builder_2d = true
 -- LOCAL SLAM
 TRAJECTORY_BUILDER_2D.min_range = 1 
 TRAJECTORY_BUILDER_2D.max_range = 80 
--- TRAJECTORY_BUILDER_2D.min_z = -0.5
--- TRAJECTORY_BUILDER_2D.max_z = 0.5
+TRAJECTORY_BUILDER_2D.min_z = -1
+TRAJECTORY_BUILDER_2D.max_z = 1
 -- TRAJECTORY_BUILDER_2D.voxel_filter_size = 0.15
 -- TRAJECTORY_BUILDER_2D.use_imu_data = true
 -- TRAJECTORY_BUILDER_2D.imu_gravity_time_constant = 1e-2
@@ -62,13 +62,13 @@ TRAJECTORY_BUILDER_2D.max_range = 80
 -- TRAJECTORY_BUILDER_2D.ceres_scan_matcher.rotation_weight = 1e-2
 -- TRAJECTORY_BUILDER_2D.ceres_scan_matcher.occupied_space_weight = 1e1
 TRAJECTORY_BUILDER_2D.num_accumulated_range_data = 3
-TRAJECTORY_BUILDER_2D.submaps.num_range_data = 1
+TRAJECTORY_BUILDER_2D.submaps.num_range_data = 20
 -- TRAJECTORY_BUILDER_2D.use_online_correlative_scan_matching = false
 -- TRAJECTORY_BUILDER_2D.submaps.grid_options_2d.resolution = 0.1
 
 -- -- GLOBAL SLAM
 -- POSE_GRAPH.optimization_problem.huber_scale = 5e2
-POSE_GRAPH.optimize_every_n_nodes = 0
+-- POSE_GRAPH.optimize_every_n_nodes = 0
 -- POSE_GRAPH.constraint_builder.sampling_ratio = 0.03
 -- POSE_GRAPH.optimization_problem.ceres_solver_options.max_num_iterations = 10
 -- POSE_GRAPH.constraint_builder.min_score = 0.62
