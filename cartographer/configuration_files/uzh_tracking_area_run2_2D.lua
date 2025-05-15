@@ -61,14 +61,14 @@ TRAJECTORY_BUILDER_2D.max_range = 80
 -- TRAJECTORY_BUILDER_2D.ceres_scan_matcher.translation_weight = 1e-2
 -- TRAJECTORY_BUILDER_2D.ceres_scan_matcher.rotation_weight = 1e-2
 -- TRAJECTORY_BUILDER_2D.ceres_scan_matcher.occupied_space_weight = 1e1
--- TRAJECTORY_BUILDER_2D.num_accumulated_range_data = 1
--- TRAJECTORY_BUILDER_2D.submaps.num_range_data = 30
+TRAJECTORY_BUILDER_2D.num_accumulated_range_data = 1
+TRAJECTORY_BUILDER_2D.submaps.num_range_data = 1
 -- TRAJECTORY_BUILDER_2D.use_online_correlative_scan_matching = false
 -- TRAJECTORY_BUILDER_2D.submaps.grid_options_2d.resolution = 0.1
 
 -- -- GLOBAL SLAM
 -- POSE_GRAPH.optimization_problem.huber_scale = 5e2
--- POSE_GRAPH.optimize_every_n_nodes = 60 
+POSE_GRAPH.optimize_every_n_nodes = 0
 -- POSE_GRAPH.constraint_builder.sampling_ratio = 0.03
 -- POSE_GRAPH.optimization_problem.ceres_solver_options.max_num_iterations = 10
 -- POSE_GRAPH.constraint_builder.min_score = 0.62
