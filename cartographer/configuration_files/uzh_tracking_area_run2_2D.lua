@@ -54,14 +54,14 @@ TRAJECTORY_BUILDER_2D.max_range = 80
 TRAJECTORY_BUILDER_2D.min_z = 0.5
 TRAJECTORY_BUILDER_2D.max_z = 1.5
 TRAJECTORY_BUILDER_2D.num_accumulated_range_data = 1
-TRAJECTORY_BUILDER_2D.voxel_filter_size = 0.15
+TRAJECTORY_BUILDER_2D.voxel_filter_size = 0.4
 -- TRAJECTORY_BUILDER_2D.use_imu_data = true
 -- TRAJECTORY_BUILDER_2D.imu_gravity_time_constant = 1e-2
 
 --  LOCAL SLAM
 TRAJECTORY_BUILDER_2D.submaps.num_range_data = 15
 
-TRAJECTORY_BUILDER_2D.ceres_scan_matcher.translation_weight = 0.05872534702657144
-TRAJECTORY_BUILDER_2D.ceres_scan_matcher.rotation_weight = 0.013403649006343462
+TRAJECTORY_BUILDER_2D.ceres_scan_matcher.translation_weight = 15.089019440026632
+TRAJECTORY_BUILDER_2D.ceres_scan_matcher.rotation_weight = 12.579273353369318
 TRAJECTORY_BUILDER_2D.ceres_scan_matcher.occupied_space_weight = 1
 return options
