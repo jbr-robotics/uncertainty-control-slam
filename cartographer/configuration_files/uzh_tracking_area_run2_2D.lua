@@ -60,7 +60,7 @@ TRAJECTORY_BUILDER_2D.voxel_filter_size = 0.4
 TRAJECTORY_BUILDER_2D.submaps.grid_options_2d.resolution = 0.15
 
 --  LOCAL SLAM
-TRAJECTORY_BUILDER_2D.submaps.num_range_data = 10
+TRAJECTORY_BUILDER_2D.submaps.num_range_data = 300
 
 TRAJECTORY_BUILDER_2D.ceres_scan_matcher.translation_weight = 15.089019440026632
 TRAJECTORY_BUILDER_2D.ceres_scan_matcher.rotation_weight = 12.579273353369318

@@ -1,0 +1,3 @@
+Date: Fri May 16 10:19:21 PM EEST 2025
+Hostname: vsevolod-g55590
+OS: Linux vsevolod-g55590 6.1.119-1-MANJARO #1 SMP PREEMPT_DYNAMIC Sat Nov 23 02:15:12 UTC 2024 x86_64 GNU/Linux
