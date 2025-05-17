@@ -25,7 +25,7 @@ def generate_launch_description():
                     "configuration_files",
                 ]),
 
-            "-configuration_basename", "kitti_3D.lua",
+            "-configuration_basename", "kitti_2D.lua",
             "--collect_metrics",
         ],
         # remappings=[
