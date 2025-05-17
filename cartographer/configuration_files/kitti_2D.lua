@@ -53,10 +53,16 @@ TRAJECTORY_BUILDER_2D.max_z = 1.2
 
 TRAJECTORY_BUILDER_2D.submaps.grid_options_2d.resolution = 0.15
 
+TRAJECTORY_BUILDER_2D.num_accumulated_range_data = 1
+
+TRAJECTORY_BUILDER_2D.submaps.num_range_data= 10
+
+TRAJECTORY_BUILDER_2D.ceres_scan_matcher.occupied_space_weight = 1e1
+
 -- -- ============================================
 -- --        TRAJECTORY_BUILDER_3D params (local SLAM)
 -- -- ============================================
-TRAJECTORY_BUILDER_3D.num_accumulated_range_data = 1
+
 -- TRAJECTORY_BUILDER_3D.ceres_scan_matcher.translation_weight = 5. 
 -- TRAJECTORY_BUILDER_3D.use_online_correlative_scan_matching = true
 -- TRAJECTORY_BUILDER_3D.imu_gravity_time_constant = .1
@@ -64,7 +70,6 @@ TRAJECTORY_BUILDER_3D.num_accumulated_range_data = 1
 -- --TRAJECTORY_BUILDER_3D.submaps.high_resolution = 0.2
 -- TRAJECTORY_BUILDER_3D.submaps.high_resolution = 0.2
 -- TRAJECTORY_BUILDER_3D.submaps.high_resolution_max_range = 50.
--- -- TRAJECTORY_BUILDER_3D.submaps.num_range_data= 300.
 
 
 -- -- No point of trying to SLAM over the points on your car
