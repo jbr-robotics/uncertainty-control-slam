@@ -142,7 +142,9 @@ class FirstSubmapCartographerLauncher(TerminalRunnable):
                 "--rate", str(self._rate),
                 "--start-offset", str(self._start_offset),
                 "--clock",
-                "--disable-keyboard-controls"
+                "--disable-keyboard-controls",
+                "--qos-profile-overrides-path",
+                "/opt/ros/humble/share/cartographer_ros/configuration_files/qos_kitti.yaml"
             ]
             
             # Start the bag play process

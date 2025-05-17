@@ -57,6 +57,8 @@ TRAJECTORY_BUILDER_2D.num_accumulated_range_data = 1
 
 TRAJECTORY_BUILDER_2D.submaps.num_range_data= 10
 
+TRAJECTORY_BUILDER_2D.ceres_scan_matcher.rotation_weight = 4828.82795512634
+TRAJECTORY_BUILDER_2D.ceres_scan_matcher.translation_weight = 0.17308892364866438
 TRAJECTORY_BUILDER_2D.ceres_scan_matcher.occupied_space_weight = 1e1
 
 -- -- ============================================
