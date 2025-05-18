@@ -53,6 +53,7 @@ RUN mkdir -p /root/ros2_ws/src && \
     colcon build --symlink-install 
 RUN pip3 install pandas numexpr==2.8.4 bottleneck==1.3.6
 RUN pip3 install -U argcomplete
+RUN pip3 install evo
 
 RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc 
 RUN echo "source /root/ros2_ws/install/setup.bash" >> ~/.bashrc 
@@ -72,6 +73,9 @@ WORKDIR /root
 
 COPY ./launch/* /opt/ros/humble/share/cartographer_ros/launch/
 COPY ./configuration_files/* /opt/ros/humble/share/cartographer_ros/configuration_files/
+COPY ./scripts /root/scripts
+
+ENV PATH="/root/scripts:${PATH}"
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
 WORKDIR /root

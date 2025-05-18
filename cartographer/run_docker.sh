@@ -17,6 +17,7 @@ docker run -it \
     --volume="${PWD}/configuration_files:${CARTOGRAPHER_PREFIX}/configuration_files" \
     --volume="${PWD}/launch:${CARTOGRAPHER_PREFIX}/launch" \
     --volume="${PWD}/cartographer_tuner:/root/cartographer_tuner" \
+    --volume="${PWD}/scripts:/root/scripts" \
     --device=/dev/dri:/dev/dri \
     --rm \
     --name cartographer \

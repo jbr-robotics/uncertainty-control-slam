@@ -22,7 +22,7 @@ def generate_launch_description():
                     FindPackageShare("cartographer_ros"),
                     "configuration_files",
                 ]),
-            "-configuration_basename", "basement_3D.lua",
+            "-configuration_basename", "uzh_tracking_area_run2_2D.lua",
             "--collect_metrics",
         ],
         # remappings=[
@@ -45,7 +45,7 @@ def generate_launch_description():
             PathJoinSubstitution([
                 FindPackageShare("cartographer_ros"),
                 "configuration_files",
-                "basement_3D.rviz"
+                "uzh_tracking_area_run2_2D.rviz"
             ])
         ],
         output="screen",
